@@ -4,6 +4,9 @@ This is the R package 'kmc'(Kaplan Meier estimator with Constraints) written and
 Installation
 ===
 One can install the development version uisng
+
 ```{r}
-library(devtools); install_github('kmc', 'yfyang86');
+library(devtools); 
+install_github('kmc', 'yfyang86');
 ```
+ 
