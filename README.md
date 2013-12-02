@@ -12,3 +12,8 @@ install_github('kmc', 'yfyang86');
  
  
 The code in (kmc.7z) is now password protected. 
+
+Bug Report
+--------------
+
+Please contact Yifan Yang (<mailto:yifan.yang@uky.edu>), or leave feed back on the github page.
