@@ -46,7 +46,7 @@ omega.lambda<-cmpfun(function(kmc.time,delta,lambda,g,gt.mat){
 }
 )
 
-kmc.data <- function(kmc.time,delta,lambda,g, gt.mat,using.C=F){
+kmc.data <- cmpfun(function(kmc.time,delta,lambda,g, gt.mat,using.C=F){
   #my omega contains 0, it is length of n
   #need S omega
   if(using.C) {
@@ -59,7 +59,7 @@ kmc.data <- function(kmc.time,delta,lambda,g, gt.mat,using.C=F){
   check.constriant=rowSums(t(b*t(tmp$gt)));	
   gama=1/(tmp$S);  
   return (list(omega=tmp$omega,gamma=tmp$gamma,S=tmp$S,chk=check.constriant));
-}
+})
 
 omega.lambda12<-cmpfun(function(kmc.time,delta,lambda,g, gt.mat){
   #iter
@@ -109,7 +109,7 @@ kmc.data12 <- function(kmc.time,delta,lambda,g, gt.mat){
 
 
 
-kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=F,using.C=F,tmp.tag=T,rtol=1E-6,control=list(nr.it=20,nr.c=1,em.it=3),...){
+kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.tag=T,rtol=1E-9,control=list(nr.it=20,nr.c=1,em.it=3),...){
     #n=length(x)
     ###### checking PHASE 1         ######
     if (length(unique(d))!=1 ){if (!setequal(unique(d),c(0,1))) stop("Status must be 0/1");}else{if (d[1]!=1) stop("Status must be 0/1");}# check d = 0/1 or all 1's
