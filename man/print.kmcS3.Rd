@@ -1,4 +1,5 @@
 \name{print.kmcS3}
+\alias{print}
 \alias{print.kmcS3}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
@@ -6,10 +7,11 @@ S3 print method for kmcS3
     %%  ~~function to do ... ~~
 }
 \description{
+Print and summarize the kmcS3 output.
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-print.kmcS3(x, digits = max(3, getOption("digits") - 3),type = c("plain",'md'))
+\method{print}{kmcS3}(x, digits = max(3, getOption("digits") - 3),type ="plain",...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -23,29 +25,17 @@ print.kmcS3(x, digits = max(3, getOption("digits") - 3),type = c("plain",'md'))
 \item{type}{
 Output file type:"plain" is plain ascii, "md" is github types of Markdown.
 }
- 
+\item{...}{
+Not implement yet.
+} 
 }
 \details{
  S3 print method for kmc class
 }
-\value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
-}
-\references{
-%% ~put references to the literature/web site here ~
-}
+
 \author{
   Yifan Yang(yifan.yang@uky.edu)
 }
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
   \code{\link{kmc.solve}}

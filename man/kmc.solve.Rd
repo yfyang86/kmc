@@ -12,7 +12,9 @@ with constraints
 It uses Lagrange multiplier directly.
 }
 \usage{
-(x,d,g,em.boost=T,using.num=T,using.Fortran=F,using.C=F,tmp.tag=T,rtol=1E-6,control=list(nr.it=20,nr.c=1,em.it=3),...)
+kmc.solve(x, d, g, em.boost = T, using.num = T, using.Fortran =
+                 T, using.C = F, tmp.tag = T, rtol = 1e-09, control =
+                 list(nr.it = 20, nr.c = 1, em.it = 3),...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -46,9 +48,9 @@ list of contraint functions. It should be a list of functions list(f1,f2,...)
 \item{control}{
   nr.it controls max iterations allowed in N-R algorithm default=20, nr.c is the scaler used in N-R algorithm default=1,em.it is max iteration if use EM algorithm (em.boost) to get the initial value of lambda, default=3.
 }
-  \item{\dots}{
-	Unspecified yet.
-}	
+\item{...}{
+Unspecified yet.
+}
 }
 \details{
 The development version won't check the constraint is proper or not. Besides, a extrordinary large number will be generated when numeric method/constraint(s) fails.
@@ -85,11 +87,7 @@ The development version won't check the constraint is proper or not. Besides, a 
     Mai Zhou(mai@ms.uky.edu), Yifan Yang(yifan.yang@uky.edu)
 %%  ~~who you are~~
 }
-\note{
-%%  ~~further notes~~
-}
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
 	  	\code{\link{plotkmc2D}}, \code{\link{print.kmcS3}}.
@@ -106,7 +104,7 @@ f<-function(x) { x-3.7}                                       # \sum f(ti) wi ~ 
 g=list( f=f) ;                                                #define constraint as a list
 
 kmc.solve( x,d,g) ;                                           #using default
-kmc.solve( x,d,g,using.C=T) ;                                 #using Rcpp
+kmc.solve( x,d,g,using.C=TRUE) ;                              #using Rcpp
 
 #################
 # dim =2

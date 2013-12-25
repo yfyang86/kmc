@@ -2,7 +2,7 @@
 #      KM EL with constraint, S3 methods!!!
 ###########################################################################
 
-print.kmcS3 <- function (x, digits = max(3, getOption("digits") - 3), type = "plain")
+print.kmcS3 <- function (x,digits = max(3, getOption("digits") - 3), type = "plain",...)
 {
     if (type=='md') {
         cat("|*A Recursive Formula for the Kaplan-Meier Estimator with Constraint*|\n")

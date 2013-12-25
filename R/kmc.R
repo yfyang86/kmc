@@ -141,7 +141,7 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
       list(x=re$chk,dev=re$domega);
     })
     
-    multiroot.nr<-function(f_,xinit,it=nr.it,C=nr.c,trace=F,tol=1E-9){
+    multiroot.nr<-function(f_,xinit,it=nr.it,C=nr.c,trace=FALSE,tol=1E-9){
       if (C*tol>1) C=ceiling(1/tol/10);
       re=xinit;
       if (trace) cat('\nx\tf(x)\tdf(x)')
@@ -159,15 +159,16 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
     
   if (em.boost){
     if (length(g)==1){
-        u.lambda<-function(re=el.cen.EM.kmc(x=kmc.time,d=delta,fun=g[[1]],mu=0,maxit=em.it,debug.kmc=F)){
+        u.lambda1<-function(re=el.cen.EM.kmc(x=kmc.time,d=delta,fun=g[[1]],mu=0,maxit=em.it,debug.kmc=F)){
           (n-1/re$prob[1])/g[[1]](re$times[1])
         }
+        init.lam=u.lambda1()
       }else{
         if(length(g)==2){
-          u.lambda<-function(re=el.cen.EM2.kmc(x=kmc.time,d=delta,fun=function(x){cbind(g[[1]](x),g[[2]](x))},mu=c(0,0),maxit=5,debug.kmc=F)){
+          u.lambda2<-function(re=el.cen.EM2.kmc(x=kmc.time,d=delta,fun=function(x){cbind(g[[1]](x),g[[2]](x))},mu=c(0,0),maxit=5,debug.kmc=F)){
             del.loc=which(delta==1)[1:2];
             tmp=c(0,0);
-            if (del.loc[2]!=2) tmp[2]=sum(as.numeric(delta[1:(del.loc[2]-1)]==0)/( rep(1-re$prob[1],2) )    )
+            if (del.loc[2]!=2) tmp[2]=sum(as.numeric(delta[1:(del.loc[2]-1)]==0)/( rep(1-re$prob[1],2) ) )
             UD<-cbind(g[[1]](re$times[1:2]),g[[2]](re$times[1:2]))
             uu.lambda=as.vector(
               solve(UD)%*%(n-1/re$prob[del.loc]-tmp)
@@ -175,17 +176,20 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
               # debug oupur lambda: print(uu.lambda)
             uu.lambda
           }
+          init.lam=u.lambda2()
         }else{
-          u.lambda<-function(){return(0);}}
+          u.lambda3<-function(){return(0);}
+          init.lam=u.lambda3()
+        }
       }
-    init.lam=u.lambda()
+    
   }else{init.lam=rep(0,length(g))}
   
 	if (using.num || ( length(g)!=1) ){
 	  multiroot(kmc.comb,start=init.lam,ctol=rtol,useFortran =using.Fortran)$root -> lambda
 	  
 	}else{
-	  multiroot.nr(f_=kmc.comb12,xinit=init.lam,it=15,C=1,F,tol=rtol) -> lambda;
+	  multiroot.nr(f_=kmc.comb12,xinit=init.lam,it=15,C=1,FALSE,tol=rtol) -> lambda;
 	}	
     if(em.boost & (length(g)==1) ){
 		loglik.null<- WKM(kmc.time,delta)$logel
@@ -206,7 +210,7 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
 			re.tmp <- list(loglik.null=loglik.null,loglik.h0=loglik.ha,"-2llr"=-2*(loglik.ha-loglik.null),g=g,time=x,status=d,phat=result$omega,pvalue=1-qchisq(-2*(loglik.ha-loglik.null),df=length(g)),lambda=lambda);
 			if (re.tmp[["-2llr"]]>100) warning('\nThe results may be not feasible!\n');
 		}else{
-			re.tmp <- list(loglik.null=loglik.null,loglik.h0=NA,"-2llr"=NA,g=g,time=x,status=d,phat=NA,pvalue=NA,df=NA,,lambda=NA);
+			re.tmp <- list(loglik.null=loglik.null,loglik.h0=NA,"-2llr"=NA,g=g,time=x,status=d,phat=NA,pvalue=NA,df=NA,lambda=NA);
 		}
     class(re.tmp)<-"kmcS3";
 	return(re.tmp);
@@ -220,14 +224,14 @@ plotkmc2D <-function(resultkmc,flist=list(f1=function(x){x},f2=function(x){x^2})
 	points(xx,dchisq(xx,df=tmp.df),col='red',lty=2,type='h');
 	
 	if (tmp.df==2){
-		X11();
+		#X11();
 		theta0=-do.call(c,lapply(resultkmc$g,function(x)(x(0))));
 		x.grid=seq((theta0[1]-range0[1]),(theta0[1]+range0[1]),length.out=range0[3]);
 		y.grid=seq((theta0[2]-range0[2]),(theta0[2]+range0[2]),length.out=range0[3]);
 		tmp.z=matrix(0,range0[3],range0[3]);
 		for (ii in 1:range0[3]){
 			for (jj in 1:range0[3]){
-				tmpg=list(f1=function(xuu,...){flist[[1]](xuu)-tmp1},f2=function(xuu,...){flist[[2]](xuu)-tmp2});
+				tmpg=list(f1=function(xuu){flist[[1]](xuu)-tmp1},f2=function(xuu){flist[[2]](xuu)-tmp2});
 				tmp1=x.grid[ii];
 				tmp2=y.grid[jj];
 				tmp.z[ii,jj]=kmc.solve(resultkmc$time,resultkmc$status,tmpg)[[2]]
