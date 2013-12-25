@@ -160,7 +160,7 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
   if (em.boost){
     if (length(g)==1){
         u.lambda<-function(re=el.cen.EM.kmc(x=kmc.time,d=delta,fun=g[[1]],mu=0,maxit=em.it,debug.kmc=F)){
-          (n-1/re$prob[1])/f(re$times[1])
+          (n-1/re$prob[1])/g[[1]](re$times[1])
         }
       }else{
         if(length(g)==2){
