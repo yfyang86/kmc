@@ -50,7 +50,8 @@ kmc.data <- cmpfun(function(kmc.time,delta,lambda,g, gt.mat,using.C=F){
   #my omega contains 0, it is length of n
   #need S omega
   if(using.C) {
-      tmp<-lambdaoo(kmc.time,delta,lambda, gt.mat)
+      #tmp<-lambdaoo(kmc.time,delta,lambda,gt.mat);
+      return( kmcdata_rcpp(kmctime=kmc.time,delta=delta,lambda=lambda,gtmat=gt.mat));
   }else{
       tmp<-omega.lambda(kmc.time,delta,lambda,g, gt.mat)
   }
@@ -58,7 +59,7 @@ kmc.data <- cmpfun(function(kmc.time,delta,lambda,g, gt.mat,using.C=F){
 #check.constriant=apply(t(b*t(tmp$gt)),1,sum);
   check.constriant=rowSums(t(b*t(tmp$gt)));	
   gama=1/(tmp$S);  
-  return (list(omega=tmp$omega,gamma=tmp$gamma,S=tmp$S,chk=check.constriant));
+  return (list(omega=tmp$omega,gamma=gama,S=tmp$S,chk=check.constriant));
 })
 
 omega.lambda12<-cmpfun(function(kmc.time,delta,lambda,g, gt.mat){
@@ -132,8 +133,9 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
     ##    Is the feasible region = NULL?
     
     kmc.comb<-function(x){
-      kmc.data(kmc.time,delta,lambda=x,g, gt.mat= gt.mat,using.C=using.C)-> re;
-      re$chk
+      #OLD kmc.data(kmc.time,delta,lambda=x,g, gt.mat= gt.mat,using.C=using.C)-> re;
+            kmc.data(kmc.time,delta,lambda=x,g, gt.mat= gt.mat,using.C=using.C)-> re;
+        re$chk
     }
     
     kmc.comb12<-Vectorize(function(x){
