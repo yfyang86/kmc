@@ -1,0 +1,13 @@
+71b772a1b4be5c784c25eb05a4f415cf *DESCRIPTION
+bbac386b537017fbd08e43063c0653c1 *NAMESPACE
+9ef5182a83159eafdd0a4ff70d5d5e59 *R/RcppExport.R
+d45beae2e7e61d9d0587d9f009f50f9a *R/kmc.R
+fea56f10f34664613e911ad3d8f46264 *R/kmcmaskel.R
+9a4141588dfe4e456d3769f1768bcb24 *R/kmcprint.R
+60012a8f9f4670f356c455af3218a494 *man/kmc.solve.Rd
+571a1a164b7be57dbcaa06d4af8ab53e *man/plotkmc.Rd
+4e95eafff19033b76fd17fe6b58d735b *man/print.kmcS3.Rd
+b3f86c20b81b51f5162874977d38784d *src/Makevars
+e654bda2f0cf51c4d53c8c6d713641ae *src/Makevars.win
+df7e4564fcec58a7bc9f04f395cb9966 *src/RcppExport.cpp
+fcc9746978bbbac2f756fd8cca4e5ad7 *src/kmc.cpp
