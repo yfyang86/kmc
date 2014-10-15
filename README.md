@@ -17,7 +17,7 @@ Examples
 One/two constraints
 ------------
 
-Run the fllowing code in R:
+Run the following code in R with only one null hypothesis E[X]=\int x d F(x) = 3.7. :
 
 ```{r}
 library(kmc)
@@ -29,11 +29,6 @@ f <- function(x) {
 g = list(f = f)
 result = kmc.solve(x, d, g)
 print(result)
-```
-
-The Null hypothesis is E[X]=\int x d F(x) = 3.7. 
-
-<blockquote>
 ---------------------------------------------------------------------------------
 A Recursive Formula for the Kaplan-Meier Estimator with Constraint
 Information:
@@ -44,10 +39,10 @@ lamda(s):	 -1.439612
      Log-likelihood(Ha)  Log-likelihood(H0)  -2LLR     p-Value(df=1)
 Est  -17.5198            -17.8273              0.6150    0.4329
 ---------------------------------------------------------------------------------
-</blockquote>
 
+```
 
-If we add another constraints: E[X^2]=16.5, then 
+If we add another constraint: E[X^2]=16.5, then 
 
 ```{r}
 > myfun5 <- function(x) {
@@ -82,6 +77,7 @@ ZZ <- plotkmc2D(re0)
 
 This package offers a naive contour plot. One can use `ZZ` to draw contour plot with the help of `ggplot2`.
 
+![contour](./data/contour.png)
 
 
 Initial value
@@ -89,7 +85,6 @@ Initial value
 There are known issues on some scenario when dealing with more than one constraint. According to our simulation, automatic tuning strategy fails under some constraints. One can always use proper initial values, and I will add additional strategies in future work.
 
 
-![contour](./data/contour.png)
 
 
 
