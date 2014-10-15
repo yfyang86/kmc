@@ -6,7 +6,7 @@ Calculate NPMLE with constriants for right censored data
 }
 \description{
 This function calculate the Kaplan-Meier estimator with mean constraints recursively. 
-\deqn{El(F)=\prod_{i=1}{n}(\Delta F(T_i))^{\delta_i}(1-F(T_i))^{1-\delta_i}}
+\deqn{El(F)=\prod_{i=1}^{n}(\Delta F(T_i))^{\delta_i}(1-F(T_i))^{1-\delta_i}}
 with constraints
 \deqn{\sum_i g(T_i)\Delta F(T_i)=0,\quad,i=1,2,...}
 It uses Lagrange multiplier directly.
