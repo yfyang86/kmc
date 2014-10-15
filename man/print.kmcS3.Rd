@@ -41,11 +41,7 @@ Not implement yet.
   \code{\link{kmc.solve}}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
 
-## The function is currently defined as
 x <- c( 1, 1.5, 2, 3, 4.2, 5.0, 6.1, 5.3, 4.5, 0.9, 2.1, 4.3) 
 d <- c( 1,   1, 0, 1, 0, 1, 1, 1, 1, 0, 0,   1) 
 
