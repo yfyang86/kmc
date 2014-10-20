@@ -1,6 +1,9 @@
 kmc.el<-function(delta,omega,S){
   n<-length(S)
-    sum(llog(omega[delta==1],.001/n^2))+sum(llog(S[delta==0],.001/n^2))
+  omega[delta==1] -> val1
+  S[delta==0]     -> val2
+  eps=1e-7
+    sum(llog(val1,.001/n^2)[val1>eps])+sum(llog(val2,.001/n^2)[val2>eps])
 }
 
 kmc.clean <- function(kmc.time,delta){
