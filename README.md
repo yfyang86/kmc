@@ -84,13 +84,13 @@ Initial value
 -------------
 There are known issues on some scenario when dealing with more than one constraint. According to our simulation, automatic tuning strategy fails under some constraints. One can always use proper initial values, and I will add additional strategies in future work.
 
-In current developing version, this package depends on `rootSolve::multiroot`, which provides a lot of options. After rootSolve is updated, `kmc` doesn't work on option: `em.boost=T` or `using.C=T`. The same option to calculate the model is 
+In current developing version, this package depends on `rootSolve::multiroot`, which provides a lot of options. After rootSolve was updated, `kmc` doesn't work on option: `em.boost=T` or `using.C=T`. The safe option to calculate the model is 
 
 ```
 kmc.solve( x,d,g,em.boost=F,using.num=T,using.Fortran=T,using.C=F,em.it=10)
 ```
 
-This is related to initial value selection problem. The next version may remove the dependency on `rootSolve`.
+This issue is related to initial value selection problem. The next version may remove the dependency on `rootSolve` and introduce a C++ port for `emplik::el.cen.EM`.
 
 Bug Report
 --------------
