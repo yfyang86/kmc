@@ -1,6 +1,6 @@
 kmc.el<-function(delta,omega,S){
   n<-length(S)
-    sum(llog(omega[delta==1],1/n^2))+sum(llog(S[delta==0],1/n^2))
+    sum(llog(omega[delta==1],1/n^2/100))+sum(llog(S[delta==0],1/n^2/100))
 }
 
 kmc.clean <- function(kmc.time,delta){
@@ -17,7 +17,7 @@ kmc.clean <- function(kmc.time,delta){
     delta=delta[FirstUnCenLocation:n];
     kmc.time=kmc.time[FirstUnCenLocation:n];
   }
-  delta[length(kmc.time)]=1;
+  #delta[length(kmc.time)]=1;
   return (list(kmc.time=kmc.time,delta=delta));
 }
 
@@ -57,8 +57,8 @@ kmc.data <- cmpfun(function(kmc.time,delta,lambda,g, gt.mat,using.C=F){
   }
   b= delta * tmp$omega;
 #check.constriant=apply(t(b*t(tmp$gt)),1,sum);
-  check.constriant=rowSums(t(b*t(tmp$gt)));	
-  gama=1/(tmp$S);  
+  check.constriant=rowSums(t(b*t(tmp$gt)));
+  gama=1/(tmp$S);
   return (list(omega=tmp$omega,gamma=gama,S=tmp$S,chk=check.constriant));
 })
 
@@ -103,8 +103,8 @@ kmc.data12 <- function(kmc.time,delta,lambda,g, gt.mat){
   tmp<-omega.lambda12(kmc.time,delta,lambda,g, gt.mat)
   b= delta * tmp$omega;
   #check.constriant=apply(t(b*t(tmp$gt)),1,sum);
-  check.constriant=rowSums(t(b*t(tmp$gt)));  
-  gama=1/(tmp$S);  
+  check.constriant=rowSums(t(b*t(tmp$gt)));
+  gama=1/(tmp$S);
   return (list(omega=tmp$omega,gamma=tmp$gamma,S=tmp$S,chk=check.constriant,domega=tmp$omega.dev));
 }
 

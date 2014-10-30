@@ -1,0 +1,14 @@
+#!/bin/sh
+/bin/rm -rf ./chm
+/bin/rm -rf ./config.*
+/bin/rm -rf ./autom4te.cache
+/bin/rm -rf src/*.so src/*.o src/*.d src/*.dll src/*.a src/*.rc src/*.rds src/Makedeps
+/bin/rm -rf R/_.*
+/bin/rm -rf R/*.Rhistory
+/bin/rm -rf src/_.*
+/bin/rm -rf src-*
+# Darwin clean temp file
+if [ `uname` = "Darwin" ]
+then
+  /usr/bin/find ./ -name ".DS_Store" -depth -exec /bin/rm {} \;
+fi
