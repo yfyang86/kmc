@@ -1,9 +1,3 @@
-#include <Rcpp.h>
-#include <stdio.h>
-#include <math.h>
-#include <vector>
-using namespace Rcpp;
-using namespace std;
 #include "common.h"
 
 List omegalambda(SEXP kmctime,SEXP delta,SEXP lambda,SEXP gtmat){
@@ -17,7 +11,7 @@ Environment stats("package:stats");
 RNGScope scope; // Don;t need rnd
 NumericMatrix Gtmat(gtmat); // In R, gtmat is stored as a double[]
 NumericVector Kmctime(kmctime),Delta(delta);
-double Lambda=Rcpp::as<double>(lambda);
+vector<double> Lambda=Rcpp::as< std::vector<double> >(lambda);
 
 //int p=Gtmat.nrow();
 int n=Gtmat.ncol();
@@ -68,7 +62,7 @@ List RCPP_KMCDATA(SEXP kmctime,SEXP delta,SEXP lambda,SEXP gtmat){
     NumericMatrix Gtmat(gtmat);
     NumericVector Kmctime(kmctime),Delta(delta);
     int samplesize_N;
-    double Lambda=Rcpp::as<double>(lambda);
+    vector<double> Lambda=Rcpp::as< std::vector<double> >(lambda);
     //int p=Gtmat.nrow();
     int n=Gtmat.ncol();// len of delta/omgea
     int p__=Gtmat.nrow();
@@ -133,9 +127,9 @@ extern "C"{
         //gtmat \in \mathcal{R}^{p \times n}
         
         int nn=np[1];  // col: sample size
-        double Lambda=lam[0];
         int p__=np[0]; // row: number of constraints.
         double tmp=0.;
+
         vector<double>S(nn);
         int cenlocL=nn;
         for (int i=0;i<nn;++i) cenlocL -= delta[i];
@@ -150,7 +144,7 @@ extern "C"{
         //Delta(n-1)=1;//setting the last to be observed!
         //start iteration
         vector<double> uomega(nn);
-        uomega[0]=1./(((double)nn)-sum(Lambda,gtmat,0,p__));//iteration
+        uomega[0]=1./(((double)nn)-sum(lam,gtmat,0,p__));//iteration
         double Scen=0.;
         for (int k=1;k<nn;k++){
             if (delta[k]==1){//==1
@@ -168,7 +162,7 @@ extern "C"{
                         intflg++;
                     }
                 }
-                uomega[k]=1./((double)nn-sum(Lambda,gtmat,k,p__) -Scen);
+                uomega[k]=1./((double)nn-sum(lam,gtmat,k,p__) -Scen);
             }
         }
         

@@ -1,13 +1,10 @@
 kmc.el<-function(delta,omega,S){
   n<-length(S)
-<<<<<<< HEAD
     sum(llog(omega[delta==1],1/n^2/100))+sum(llog(S[delta==0],1/n^2/100))
-=======
   omega[delta==1] -> val1
   S[delta==0]     -> val2
   eps=1e-7
     sum(llog(val1,.001/n^2)[val1>eps])+sum(llog(val2,.001/n^2)[val2>eps])
->>>>>>> FETCH_HEAD
 }
 
 kmc.clean <- function(kmc.time,delta){
@@ -150,11 +147,11 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
       list(x=re$chk,dev=re$domega);
     })
     
-    kmc.comb123<-Vectorize(function(x){
-        kmc_routine2(lambda=x,delta=delta,gtmat=gt.mat)->re;
+	kmc.comb123<-function(x){
+        kmc_routine4(lambda=x,delta=delta,gtmat=gt.mat)->re;
         return(re);
-    })
-    
+    }
+	
     multiroot.nr<-function(f_,xinit,it=nr.it,C=nr.c,trace=FALSE,tol=1E-9){
       if (C*tol>1) C=ceiling(1/tol/10);
       re=xinit;

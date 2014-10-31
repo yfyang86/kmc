@@ -8,22 +8,19 @@ kmcdata_rcpp<-function(kmctime,delta,lambda,gtmat){
 }
 
 
-kmc_routine2<-Vectorize(function(
-delta, # status
-lambda,# root finding
-gtmat # g(t) Matrix p X n
-){
-    np=as.integer(dim(gtmat))
-    chk=numeric(np[1])
-    delta=as.integer(delta)
-    lambda=as.vector(lambda);
-    gtmat=as.numeric(gtmat)
-    #.C extension will ignore variable name!
-    re=.C(
-    "nocopy_kmc_data", delta,gtmat,lambda,np,chk
-    )
+kmc_routine4<-function( 
+		delta, # status 
+		lambda,# root finding 
+		gtmat # g(t) Matrix p X n 
+){ 
+    np=as.integer(dim(gtmat)) 
+    chk=numeric(np[1]) 
+    delta=as.integer(delta) 
+    lambda=as.vector(lambda); 
+    gtmat=as.numeric(gtmat) 
+    #.C extension will ignore variable name! 
+    re=.C( 
+		"nocopy_kmc_data", delta,gtmat,lambda,np,chk 
+    ) 
     return(re[[5]]);
-},
-vectorize.args ="lambda"
-)
-
+}
