@@ -139,8 +139,13 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
     }
     
     kmc.comb12<-Vectorize(function(x){
-      kmc.data12(kmc.time,delta,lambda=x,g, gt.mat= gt.mat)-> re;
+        kmc.data12(kmc.time,delta,lambda=x,g, gt.mat= gt.mat)-> re;
       list(x=re$chk,dev=re$domega);
+    })
+    
+    kmc.comb123<-Vectorize(function(x){
+        kmc_routine2(lambda=x,delta=delta,gtmat=gt.mat)->re;
+        return(re);
     })
     
     multiroot.nr<-function(f_,xinit,it=nr.it,C=nr.c,trace=FALSE,tol=1E-9){
@@ -188,7 +193,7 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
   }else{init.lam=rep(0,length(g))}
   
 	if (using.num || ( length(g)!=1) ){
-	  multiroot(kmc.comb,start=init.lam,ctol=rtol,useFortran =using.Fortran)$root -> lambda
+	  multiroot(kmc.comb123,start=init.lam,ctol=rtol,useFortran =using.Fortran)$root -> lambda
 	  
 	}else{
 	  multiroot.nr(f_=kmc.comb12,xinit=init.lam,it=15,C=1,FALSE,tol=rtol) -> lambda;

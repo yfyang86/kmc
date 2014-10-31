@@ -1,5 +1,5 @@
 Package: kmc
-Version: 0.1-3
+Version: 0.2-0
 Title: Kaplan - Meier estimator with constraints for right censored
         data -- a recursive computational algorithm
 Author: Yifan Yang <yifan.yang@uky.edu> , Mai Zhou<mai@ms.uky.edu>

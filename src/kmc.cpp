@@ -3,32 +3,19 @@
 #include <math.h>
 #include <vector>
 using namespace Rcpp;
-
-
-double sum(NumericVector y){
-double re=0.;
-for (int i=0; i<y.size();i++) re+=y(i);
-return re;
-}
-
-double sum(NumericVector x,NumericVector y){
-double re=0.;
-for (int i=0; i<y.size();i++) re+=y(i)*x(i);
-return re;
-}
-
-
-double sum(double x,NumericMatrix mat,int col){
-double re=0.;
-for (int i=0; i<mat.nrow();i++) re+=x*mat(i,col);
-return re;
-}
-
+using namespace std;
+#include "common.h"
 
 List omegalambda(SEXP kmctime,SEXP delta,SEXP lambda,SEXP gtmat){
+    /* 
+    // kmctime: T
+    // delta:   status
+    // lambda:  root finding
+    // gtmat:   g_1(X),...,g_p(X)
+     */
 Environment stats("package:stats");
-RNGScope scope;
-NumericMatrix Gtmat(gtmat);
+RNGScope scope; // Don;t need rnd
+NumericMatrix Gtmat(gtmat); // In R, gtmat is stored as a double[]
 NumericVector Kmctime(kmctime),Delta(delta);
 double Lambda=Rcpp::as<double>(lambda);
 
@@ -137,4 +124,59 @@ List RCPP_KMCDATA(SEXP kmctime,SEXP delta,SEXP lambda,SEXP gtmat){
     return(re);
 }
 
+extern "C"{
+    
+    void nocopy_kmc_data(int * delta,double *
+                         gtmat, double *lam, int *np,double * chk){
+        //chk[p]
+        
+        //gtmat \in \mathcal{R}^{p \times n}
+        
+        int nn=np[1];  // col: sample size
+        double Lambda=lam[0];
+        int p__=np[0]; // row: number of constraints.
+        double tmp=0.;
+        vector<double>S(nn);
+        int cenlocL=nn;
+        for (int i=0;i<nn;++i) cenlocL -= delta[i];
+        vector<int> cenloc(cenlocL); // Index of Censoring
+        int intflg=0;
+        for (int i=0;i<nn;i++){//TODO: Record index of cen
+            if (delta[i]==0) {
+                cenloc[intflg]=i;//==0
+                intflg++;
+            }
+        }
+        //Delta(n-1)=1;//setting the last to be observed!
+        //start iteration
+        vector<double> uomega(nn);
+        uomega[0]=1./(((double)nn)-sum(Lambda,gtmat,0,p__));//iteration
+        double Scen=0.;
+        for (int k=1;k<nn;k++){
+            if (delta[k]==1){//==1
+                tmp=0.;
+                for (int i=0;i<nn;i++){
+                    tmp+=uomega[i];
+                    S[i]=1-tmp;
+                }
+                Scen=0;
+                if (cenloc[0]<(k-1)) {// notice starts from 1 as we computed k=0 manully
+                    intflg=0;
+                    while (intflg<cenlocL  && cenloc[intflg]<=(k-1) ){
+                        //if (k>47990) printf("Check point: %d iteration %dINTFLG\n",k,intflg);
+                        Scen+=1./S[cenloc[intflg]];
+                        intflg++;
+                    }
+                }
+                uomega[k]=1./((double)nn-sum(Lambda,gtmat,k,p__) -Scen);
+            }
+        }
+        
+        for (int i=0;i<p__;i++){
+            for (int j=0;j<nn;j++)
+                chk[i] += delta[j]*uomega[j]*gtmat[i+j*p__];
+        }
+    }
+    
+}
 
