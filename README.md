@@ -79,6 +79,17 @@ This package offers a naive contour plot. One can use `ZZ` to draw contour plot 
 
 ![contour](./data/contour.png)
 
+A careful tuning version is 
+
+![contour2](./data/contour2.png)
+
+This version uses a 30*30 grid to contruct the contour plot on a iMac2007 2.0Hz Core2 machine and only spend (2s to load R): 
+
+```sh
+real0m20.202s
+user0m18.817s
+sys0m0.240s
+```
 
 Initial value
 -------------
