@@ -198,7 +198,7 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
   
 	if (using.num || ( length(g)!=1) ){
 	  multiroot(kmc.comb123,start=init.lam,ctol=rtol,useFortran =using.Fortran)$root -> lambda
-	  
+	  cat("lambda:\t",lambda,"\n"); 
 	}else{
 	  multiroot.nr(f_=kmc.comb12,xinit=init.lam,it=15,C=1,FALSE,tol=rtol) -> lambda;
 	}	
@@ -231,8 +231,8 @@ plotkmc2D <-function(resultkmc,flist=list(f1=function(x){x},f2=function(x){x^2})
 	tmp.df=length(resultkmc$g);
 	xx<-resultkmc[["-2llr"]];
 	xl<-seq(0,max(6,xx+2),0.01)
-	plot(xl,dchisq(xl,df=tmp.df),type='l',main='Kaplan-Meier Estimator with Constraint',xlab="X",ylab="Probabilty");
-	points(xx,dchisq(xx,df=tmp.df),col='red',lty=2,type='h');
+	#plot(xl,dchisq(xl,df=tmp.df),type='l',main='Kaplan-Meier Estimator with Constraint',xlab="X",ylab="Probabilty");
+	#points(xx,dchisq(xx,df=tmp.df),col='red',lty=2,type='h');
 	
 	if (tmp.df==2){
 		#X11();
@@ -242,10 +242,10 @@ plotkmc2D <-function(resultkmc,flist=list(f1=function(x){x},f2=function(x){x^2})
 		tmp.z=matrix(0,range0[3],range0[3]);
 		for (ii in 1:range0[3]){
 			for (jj in 1:range0[3]){
-				tmpg=list(f1=function(xuu){flist[[1]](xuu)-tmp1},f2=function(xuu){flist[[2]](xuu)-tmp2});
 				tmp1=x.grid[ii];
 				tmp2=y.grid[jj];
-				tmp.z[ii,jj]=kmc.solve(resultkmc$time,resultkmc$status,tmpg)[[2]]
+				tmpg=list(f1=function(xuu){flist[[1]](xuu)-tmp1},f2=function(xuu){flist[[2]](xuu)-tmp2});
+				tmp.z[ii,jj]=kmc.solve(resultkmc$time,resultkmc$status,tmpg,sing.C=T)[[2]]
 			}
 		}
 		contour(x.grid,y.grid,tmp.z)
