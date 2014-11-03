@@ -1,7 +1,8 @@
 /* 
  * File:   kmc_comm.h
  * Author: Yifan Yang
- *
+ * Newton Raphson - root finding
+ * Jacob Updating: oordinate descent
  * Created on November 2, 2014, 5:39 PM
  */
 
