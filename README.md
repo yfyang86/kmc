@@ -130,3 +130,8 @@ Bug Report
 --------------
 
 Please contact Yifan Yang (<mailto:yifan.yang@uky.edu>), or leave feed back on the github page.
+
+Development
+----------------
+1. `Rcpp` will be removed from the next version as a `Symbol not found: __ZSt24__throw_out_of_range_fmtPKcz` error on Mac OS with gcc-4.9.1. No easy solution is available now.
+2. `rootSolve` will be replaced with an N-R routine.
