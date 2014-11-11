@@ -23,6 +23,7 @@ kmc.clean <- function(kmc.time,delta){
   }
   #delta[length(kmc.time)]=1;
   U=kmc_find0loc(delta);
+  cat("len: ",U);
 if (U==0) stop("Not enough event points!");
   return (list(kmc.time=kmc.time[1:U],delta=delta[1:U]));
 }
