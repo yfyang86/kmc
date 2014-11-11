@@ -21,7 +21,7 @@ kmc.clean <- function(kmc.time,delta){
     delta=delta[FirstUnCenLocation:n];
     kmc.time=kmc.time[FirstUnCenLocation:n];
   }
-  #delta[length(kmc.time)]=1;
+  delta[length(kmc.time)]=1;
   return (list(kmc.time=kmc.time,delta=delta));
 }
 
