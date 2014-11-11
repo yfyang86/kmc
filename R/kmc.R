@@ -22,7 +22,9 @@ kmc.clean <- function(kmc.time,delta){
     kmc.time=kmc.time[FirstUnCenLocation:n];
   }
   #delta[length(kmc.time)]=1;
-  return (list(kmc.time=kmc.time,delta=delta));
+  U=kmc_find0loc(delta);
+if (U==0) stop("Not enough event points!");
+  return (list(kmc.time=kmc.time[1:U],delta=delta[1:U]));
 }
 
 omega.lambda<-cmpfun(function(kmc.time,delta,lambda,g,gt.mat){

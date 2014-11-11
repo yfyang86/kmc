@@ -232,3 +232,17 @@ void eltestwt2 (double *x, double *wt, double * mu1,int *Lx1,double *pi,double *
 }
  */
 
+void locLastZero(int *target,int* l,int *re){
+    int nn = 0[l];int i=1;
+    re[0]=0;
+    if (target[nn]!=1){
+        for (i;i<nn;i++){
+            if (target[nn-i]==0 and target[nn-i-1]==1){
+                break;
+            }
+        }
+        re[0]=nn-i;
+    }else{
+    re[0]=nn;
+    }
+}
