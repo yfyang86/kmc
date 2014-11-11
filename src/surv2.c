@@ -237,7 +237,7 @@ void locLastZero(int *target,int* l,int *re){
     re[0]=0;
     if (target[nn]!=1){
         for (i;i<nn;i++){
-            if (target[nn-i]==0 and target[nn-i-1]==1){
+            if (target[nn-i]==0 && target[nn-i-1]==1){
                 break;
             }
         }
