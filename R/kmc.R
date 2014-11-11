@@ -203,7 +203,9 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
 	  multiroot.nr(f_=kmc.comb12,xinit=init.lam,it=15,C=1,FALSE,tol=rtol) -> lambda;
 	}	
     if(em.boost & (length(g)==1) ){
-		loglik.null<- WKM(kmc.time,delta)$logel
+		#loglik.null<- WKM(kmc.time,delta)$logel
+		result0 <- omega.lambda(kmc.time,delta,0.,g,gt.mat=gt.mat)
+		loglik.null<-kmc.el(delta,result0$omega,result0$S)
 	}else{
         omega.lambda(kmc.time=kmc.time,delta=delta,lambda=0,g=g,gt.mat=gt.mat)->re0; ## set lambda=0, it compute KM-est
         loglik.null<- kmc.el(delta,re0$omega,re0$S)
