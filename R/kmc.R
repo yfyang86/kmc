@@ -21,11 +21,12 @@ kmc.clean <- function(kmc.time,delta){
     delta=delta[FirstUnCenLocation:n];
     kmc.time=kmc.time[FirstUnCenLocation:n];
   }
-  #delta[length(kmc.time)]=1;
-  U=kmc_find0loc(delta);
-  cat("len: ",U);
-if (U==0) stop("Not enough event points!");
-  return (list(kmc.time=kmc.time[1:U],delta=delta[1:U]));
+  delta[length(kmc.time)]=1;
+  #U=kmc_find0loc(delta);
+#  cat("len: ",U);
+#if (U==0) stop("Not enough event points!");
+#  return (list(kmc.time=kmc.time[1:U],delta=delta[1:U]));
+ return (list(kmc.time=kmc.time,delta=delta));
 }
 
 omega.lambda<-cmpfun(function(kmc.time,delta,lambda,g,gt.mat){
