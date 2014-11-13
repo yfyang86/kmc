@@ -277,7 +277,7 @@ kmc.bjtest<-function(
     del.loc=which(delta==1)[1:2];
     tmp=c(0,0);
     if (del.loc[2]!=2) tmp[2]=sum(as.numeric(delta[1:(del.loc[2]-1)]==0)/( rep(1-re$prob[1],2) ) )
-    UD<-cbind(g[[1]](re$times[1:2]),g[[2]](re$times[1:2]))
+    UD<-cbind(gt.matrix[1:2,1],gt.matrix[1:2,2])
     uu.lambda=as.vector(
       solve(UD)%*%(n-1/re$prob[del.loc]-tmp)
     )
