@@ -263,7 +263,8 @@ kmc.bjtest<-function(
   
   
   gt.matrix = esort*A;
-  delta=dsort;
+  delta = dsort;
+  kmc.time = esort;
   
   kmc.comb123<-function(x){
     kmc_routine4(lambda=x,delta=delta,gtmat=gt.matrix)->re;
