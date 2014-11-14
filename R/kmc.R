@@ -262,7 +262,7 @@ kmc.bjtest<-function(
   }
   
   
-  gt.matrix = esort*A;
+  gt.matrix = t(A)*esort;
   delta = dsort;
   kmc.time = esort;
   
