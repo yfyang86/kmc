@@ -235,7 +235,7 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
 }
 
 kmc.bjtest<-function(
-  y, d, x, beta
+  y, d, x, beta,init.st="naive"
 ){
   
   n <- length(y)
@@ -261,8 +261,7 @@ kmc.bjtest<-function(
     A[i, ] <- A[i, ]/pKM[i]
   }
   
-  
-  gt.matrix = t(A)*esort;
+  gt.matrix = t(A*esort);
   delta = dsort;
   kmc.time = esort;
   
@@ -284,14 +283,13 @@ kmc.bjtest<-function(
     # debug oupur lambda: print(uu.lambda)
     uu.lambda
   }
-  init.lam=u.lambda2()
-  multiroot(kmc.comb123,start=init.lam,useFortran = T)$root -> lambda
   
-  omega.lambda(kmc.time=esort,delta=delta,lambda=lambda,g=NULL,gt.mat=gt.matrix) -> result; ## set lambda=0, it compute KM-est
-  
+  if (init.st=="naive"){ init.lam=c(0,0)}else{init.lam=u.lambda2()}
+  cat("init.lam:\t",init.lam,'\tLAM')
+  multiroot(kmc.comb123,start=init.lam,useFortran = T,rtol = 1e-9, atol = 1e-9, ctol = 1e-9)$root -> lambda
+  cat(lambda,'\n')
+  omega.lambda(kmc.time=esort,delta=delta,lambda=lambda,g=NULL,gt.mat=gt.matrix) -> result; ## set lambda=0, it compute KM-est  
   temp2<-kmc.el(delta,result$omega,result$S)
-  
-  
   pnew <- result$omega
   logel1 <- temp0$logel
   logel2 <- temp2
