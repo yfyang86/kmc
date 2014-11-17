@@ -79,6 +79,40 @@ This package offers a naive contour plot. One can use `ZZ` to draw contour plot 
 
 ![contour](./data/contour.png)
 
+A careful tuning version is 
+
+```{r}
+#!/usr/local/bin/Rscripta
+# file: TESTKMC.R
+args <- commandArgs(TRUE)
+
+t1=as.numeric(args[1])
+t2=as.numeric(args[2])
+
+library(kmc)
+x <- c(1, 1.5, 2, 3, 4.2, 5, 6.1, 5.3, 4.5, 0.9, 2.1, 4.3)
+d <- c(1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1)
+f_1 <- function(x) {x - t1}
+
+f_2 <- function(x) {x^2-t2}
+g <- list(f1=f_1,f2=f_2);
+
+re0 <- kmc.solve(x, d, g)
+
+ZZ <-  plotkmc2D(re0,range0 = c(0.1, .4, 30))
+```
+
+
+![contour2](./data/contour2.png)
+
+This version uses a 30*30 grid to contruct the contour plot on a iMac2007 2.0Hz Core2 machine and only spend (2s to load R): 
+
+```sh
+time Rscript TESTKMC.R 4.0 18.6
+real0m20.202s
+user0m18.817s
+sys0m0.240s
+```
 Real Data Example
 --------------------------
 `stanford5`: stanford heart transplant data contains 152 observations. We could draw a contour plot of intercept and slope.
@@ -130,16 +164,9 @@ ZZ=matrix(0,2*LL+1,2*LL+1)
 library(kmc)
 tic=0
 for(jj in 1:(2*LL+1)){
-  cat("\nLoop: ",jj,'\n');
 for(ii in 1:(2*LL+1)){
   beta=c(beta.0[ii],beta.1[jj])
-  cat(ii,'\n')
- toc<-proc.time()[3]
-#ZZ[jj,ii]=bjtest(y,d,x=x,beta=beta)$"-2LLR"
- ZZ[jj,ii]=kmc.bjtest(y,d,x=x,beta=beta,init.st="naive")$"-2LLR"
-tic=proc.time()[3]-toc+tic
-cat("[",beta.0[ii],",",beta.1[jj],"]=",ZZ[jj,ii],"\n")
-#logel2
+  ZZ[jj,ii]=kmc.bjtest(y,d,x=x,beta=beta,init.st="naive")$"-2LLR"
 }
 }
 ZZ2<-ZZ
@@ -154,7 +181,9 @@ contour(
   x=beta.1,
   ZZ,
   zlim=c(0,.17),
-  levels=unique(floor.d(beta.grid(x0=mean(zlim),range=diff(zlim)/2,n0=15,type="sqrt",u=10),	4)),
+  levels=unique(floor.d(
+		beta.grid(x0=mean(zlim),range=diff(zlim)/2,n0=15,type="sqrt",u=10),
+		4)),
   ylab="Intercept",
   xlab=expression(beta[Age])
   ) 
