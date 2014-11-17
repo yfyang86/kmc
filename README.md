@@ -125,9 +125,6 @@ d=d[oy]
 y=y[oy]
 x=cbind(1,stanford5$age)[oy,]
 
-#d=d[1:148]
-#y=y[1:148]
-#x=x[1:148,]
 ZZ=matrix(0,2*LL+1,2*LL+1)
 
 library(kmc)
