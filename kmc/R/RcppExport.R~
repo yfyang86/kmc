@@ -24,3 +24,10 @@ kmc_routine4<-function(
     ) 
     return(re[[5]]);
 }
+
+kmc_find0loc <- function(d){
+ re=1L;
+ d=as.integer(d);
+ n=as.integer(length(d));
+ return(.C("locLastZero",d,n,re)[[3]]);
+}

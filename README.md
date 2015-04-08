@@ -113,6 +113,85 @@ real0m20.202s
 user0m18.817s
 sys0m0.240s
 ```
+Real Data Example
+--------------------------
+`stanford5`: stanford heart transplant data contains 152 observations. We could draw a contour plot of intercept and slope.
+
+```r
+LL= 50
+beta0 <- 3.52016
+beta1 <- -0.01973458 #-0.0185
+beta.grid <- function(x0,range,n0,type="sq",u=5){
+	n0 = as.double(n0)
+	if (type=="sq"){
+		o1 <- c(
+		-range*(u*(n0:1)^2)/(u*n0^2),0,
+		range*(u*(1:n0)^2)/(u*n0^2)
+		)
+	}else{
+	if (type=='sqrt'){
+		o1 <- c(
+		-range*(u*sqrt(n0:1))/(u*sqrt(n0)),0,
+		range*(u*sqrt(1:n0))/(u*sqrt(n0)))
+		}else{
+		o1=c(
+		-range*(n0:1)/n0,
+		0,
+		range*(1:n0)/n0
+		)
+		}  
+	}
+	return(
+		x0+o1
+		);
+}
+
+beta.0 <- beta.grid(beta0,0.05,LL,"l")
+beta.1 <- beta.grid(beta1,.00151,LL,"l")#0.00051
+
+set.seed(1234)
+y=log10(stanford5$time)+runif(152)/1000
+
+d <- stanford5$status
+
+oy = order(y,-d)
+d=d[oy]
+y=y[oy]
+x=cbind(1,stanford5$age)[oy,]
+
+ZZ=matrix(0,2*LL+1,2*LL+1)
+
+library(kmc)
+tic=0
+for(jj in 1:(2*LL+1)){
+for(ii in 1:(2*LL+1)){
+  beta=c(beta.0[ii],beta.1[jj])
+  ZZ[jj,ii]=kmc.bjtest(y,d,x=x,beta=beta,init.st="naive")$"-2LLR"
+}
+}
+ZZ2<-ZZ
+ZZ[ZZ<0]=NA ## when KMC.BJTEST fails to converge, it'll return a negative value.
+
+range(ZZ,finite=T) -> zlim
+floor.d<-function(x,n=4){floor(x*10^n)/(10^n)}
+
+postscript("C:/Temp/Fig2_1.eps",width=7,height=7)
+contour(
+  y=beta.0,
+  x=beta.1,
+  ZZ,
+  zlim=c(0,.17),
+  levels=unique(floor.d(
+		beta.grid(x0=mean(zlim),range=diff(zlim)/2,n0=15,type="sqrt",u=10),
+		4)),
+  ylab="Intercept",
+  xlab=expression(beta[Age])
+  ) 
+```
+
+The countour plot is 
+
+![contour](./data/Fig2.png)
 
 Initial value
 -------------
@@ -130,8 +209,3 @@ Bug Report
 --------------
 
 Please contact Yifan Yang (<mailto:yifan.yang@uky.edu>), or leave feed back on the github page.
-
-Development
-----------------
-1. `Rcpp` will be removed from the next version as a `Symbol not found: __ZSt24__throw_out_of_range_fmtPKcz` error on Mac OS with gcc-4.9.1. No easy solution is available now.
-2. `rootSolve` will be replaced with an N-R routine.
