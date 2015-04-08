@@ -53,7 +53,7 @@ Unspecified yet.
 }
 }
 \details{
-The development version won't check the constraint is proper or not. Besides, a extrordinary large number will be generated when numeric method/constraint(s) fails.
+The development version won't check the constraint is proper or not. Besides, an extrordinary large number will be generated when numeric method/constraint(s) fails.
 }
 \value{
  a list with the following components:
@@ -80,12 +80,14 @@ The development version won't check the constraint is proper or not. Besides, a 
  }
 }
 \references{
-    A Recursive Formula for the Kaplan-Meier Estimator with Constraint
-%% ~put references to the literature/web site here ~
+Zhou, M. and Yang, Y. (2015).
+A recursive formula for the Kaplan-Meier estimator with mean constraints and its application to empirical likelihood
+\emph{Computational Statistics}
+\bold{Online ISSN} 1613-9658.
 }
+
 \author{
     Mai Zhou(mai@ms.uky.edu), Yifan Yang(yifan.yang@uky.edu)
-%%  ~~who you are~~
 }
 
 

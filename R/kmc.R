@@ -22,8 +22,15 @@ kmc.clean <- function(kmc.time,delta){
     kmc.time=kmc.time[FirstUnCenLocation:n];
   }
   delta[length(kmc.time)]=1;
-  return (list(kmc.time=kmc.time,delta=delta));
+  #U=kmc_find0loc(delta);
+#  cat("len: ",U);
+#if (U==0) stop("Not enough event points!");
+#  return (list(kmc.time=kmc.time[1:U],delta=delta[1:U]));
+ return (list(kmc.time=kmc.time,delta=delta));
 }
+
+
+
 
 omega.lambda<-cmpfun(function(kmc.time,delta,lambda,g,gt.mat){
   #iter
@@ -198,14 +205,12 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
   
 	if (using.num || ( length(g)!=1) ){
 	  multiroot(kmc.comb123,start=init.lam,ctol=rtol,useFortran =using.Fortran)$root -> lambda
-	  cat("lambda:\t",lambda,"\n"); 
+	  
 	}else{
 	  multiroot.nr(f_=kmc.comb12,xinit=init.lam,it=15,C=1,FALSE,tol=rtol) -> lambda;
 	}	
     if(em.boost & (length(g)==1) ){
-		#loglik.null<- WKM(kmc.time,delta)$logel
-		result0 <- omega.lambda(kmc.time,delta,0.,g,gt.mat=gt.mat)
-		loglik.null<-kmc.el(delta,result0$omega,result0$S)
+		loglik.null<- WKM(kmc.time,delta)$logel
 	}else{
         omega.lambda(kmc.time=kmc.time,delta=delta,lambda=0,g=g,gt.mat=gt.mat)->re0; ## set lambda=0, it compute KM-est
         loglik.null<- kmc.el(delta,re0$omega,re0$S)
@@ -229,12 +234,76 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
 	return(re.tmp);
 }
 
+kmc.bjtest<-function(
+  y, d, x, beta,init.st="naive"
+){
+  
+  n <- length(y)
+  x <- as.matrix(x)
+  xdim <- dim(x)
+  if (xdim[1] != n) 
+    stop("check dim of x")
+  if (length(beta) != xdim[2]) 
+    stop("check dim of x and beta")
+  e <- y - as.vector(x %*% beta)
+  ordere <- order(e, -d)
+  esort <- e[ordere]
+  dsort <- d[ordere]
+  xsort <- as.matrix(x[ordere, ])
+  dsort[length(dsort)] <- 1
+  temp0 <- WKM(esort, dsort, zc = 1:n)
+  pKM <- temp0$jump
+  temp <- redistF(y = esort, d = dsort, Fdist = pKM)
+  weight <- temp$weight/n
+  A <- matrix(0, ncol = xdim[2], nrow = n)
+  for (i in 1:n) if (dsort[i] == 1) {
+    A[i, ] <- t(as.matrix(weight[1:i, i])) %*% xsort[1:i,]
+    A[i, ] <- A[i, ]/pKM[i]
+  }
+  
+  gt.matrix = t(A*esort);
+  delta = dsort;
+  kmc.time = esort;
+  
+  kmc.comb123<-function(x){
+    kmc_routine4(lambda=x,delta=delta,gtmat=gt.matrix)->re;
+    return(re);
+  }
+  
+  u.lambda2<-function(re=el.cen.EM2.kmc(x=kmc.time,d=delta,fun= function(t, q) {
+        t * q
+    },mu=c(0,0),maxit=5,debug.kmc=F,q=A)){
+    del.loc=which(delta==1)[1:2];
+    tmp=c(0,0);
+    if (del.loc[2]!=2) tmp[2]=sum(as.numeric(delta[1:(del.loc[2]-1)]==0)/( rep(1-re$prob[1],2) ) )
+    UD<-cbind(gt.matrix[1:2,1],gt.matrix[1:2,2])
+    uu.lambda=as.vector(
+      solve(UD)%*%(n-1/re$prob[del.loc]-tmp)
+    )
+    # debug oupur lambda: print(uu.lambda)
+    uu.lambda
+  }
+  
+  if (init.st=="naive"){ init.lam=c(0,0)}else{init.lam=u.lambda2()}
+  cat("init.lam:\t",init.lam,'\tLAM')
+  multiroot(kmc.comb123,start=init.lam,useFortran = T,rtol = 1e-9, atol = 1e-9, ctol = 1e-9)$root -> lambda
+  cat(lambda,'\n')
+  omega.lambda(kmc.time=esort,delta=delta,lambda=lambda,g=NULL,gt.mat=gt.matrix) -> result; ## set lambda=0, it compute KM-est  
+  temp2<-kmc.el(delta,result$omega,result$S)
+  pnew <- result$omega
+  logel1 <- temp0$logel
+  logel2 <- temp2
+  list(prob = pnew, logel = logel1, logel2 = logel2, `-2LLR` = 2 * 
+         (logel1 - logel2))
+}
+
+
 plotkmc2D <-function(resultkmc,flist=list(f1=function(x){x},f2=function(x){x^2}),range0=c(0.2,3,20)){
 	tmp.df=length(resultkmc$g);
 	xx<-resultkmc[["-2llr"]];
 	xl<-seq(0,max(6,xx+2),0.01)
-	#plot(xl,dchisq(xl,df=tmp.df),type='l',main='Kaplan-Meier Estimator with Constraint',xlab="X",ylab="Probabilty");
-	#points(xx,dchisq(xx,df=tmp.df),col='red',lty=2,type='h');
+	plot(xl,dchisq(xl,df=tmp.df),type='l',main='Kaplan-Meier Estimator with Constraint',xlab="X",ylab="Probabilty");
+	points(xx,dchisq(xx,df=tmp.df),col='red',lty=2,type='h');
 	
 	if (tmp.df==2){
 		#X11();
@@ -244,10 +313,10 @@ plotkmc2D <-function(resultkmc,flist=list(f1=function(x){x},f2=function(x){x^2})
 		tmp.z=matrix(0,range0[3],range0[3]);
 		for (ii in 1:range0[3]){
 			for (jj in 1:range0[3]){
+				tmpg=list(f1=function(xuu){flist[[1]](xuu)-tmp1},f2=function(xuu){flist[[2]](xuu)-tmp2});
 				tmp1=x.grid[ii];
 				tmp2=y.grid[jj];
-				tmpg=list(f1=function(xuu){flist[[1]](xuu)-tmp1},f2=function(xuu){flist[[2]](xuu)-tmp2});
-				tmp.z[ii,jj]=kmc.solve(resultkmc$time,resultkmc$status,tmpg,sing.C=T)[[2]]
+				tmp.z[ii,jj]=kmc.solve(resultkmc$time,resultkmc$status,tmpg)[[2]]
 			}
 		}
 		contour(x.grid,y.grid,tmp.z)
