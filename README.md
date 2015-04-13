@@ -215,11 +215,11 @@ In current developing version, this package depends on `rootSolve::multiroot`, w
 Update
 ------
  1. After rootSolve was updated, `kmc` doesn't work on option: `em.boost=T` or `using.C=T`. The safe option to calculate the model is    
-  ```r
+  ```
   kmc.solve( x,d,g,em.boost=F,using.num=T,using.Fortran=T,using.C=F,em.it=10)
   ```
  This issue is related to initial value selection problem.    
- 2. The next version may remove the dependency on `rootSolve` and [solution](./src/common_kmc.h") is a trying which depends on [Eigen](http://eigen.tuxfamily.org/).    
+ 2. The next version may remove the dependency on `rootSolve` and [solution](./src/common_kmc.h) is a trying which depends on [Eigen](http://eigen.tuxfamily.org/).    
  3. I will delete the dependency on Rcpp as it prevent the package works on Mac 10.6.
  4. introduce a C++ port for `emplik::el.cen.EM` and it has been approved in `emplik` package.    
  5. A redesigned data structure with C++ implement: `nocopy_kmc_data` in [src](./src/kmc.cpp).
