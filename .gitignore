@@ -1,1 +1,8 @@
 /.project
+*.DS_Store
+*.swp
+*.exe
+*.dll
+*.so
+*.o
+

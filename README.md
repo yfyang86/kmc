@@ -1,7 +1,9 @@
 KMC
 ===
 
-The Kaplan-Meier estimator is very popular in analysis of survival data. However, it is not easy to compute the *constrained* Kaplan-Meier. Current computational method uses expectationmaximization algorithm to achieve this, but can be slow at many situations. In this package we give a recursive computational algorithm for the *constrained* Kaplan-Meier estimator. The constraint is assumed given in **linear** estimating equations or **mean functions**. We also illustrate how this leads to the empirical likelihood ratio test with right censored data and apply it to test non-parametric [AFT](http://www.ms.uky.edu/~mai/research/BJ2.pdf) problem. The proposed has a signifiacant speed advantage over EM algorithm.
+The Kaplan-Meier estimator is very popular in analysis of survival data. However, it is not easy to compute the *constrained* Kaplan-Meier. Current computational method uses expectationmaximization algorithm to achieve this, but can be slow at many situations. In this package we give a recursive computational algorithm for the *constrained* Kaplan-Meier estimator. The constraint is assumed given in **linear** estimating equations or **mean functions**. 
+![MeanPlot](./data/KMplot.png)
+We also illustrate how this leads to the empirical likelihood ratio test with right censored data and apply it to test non-parametric [AFT](http://www.ms.uky.edu/~mai/research/BJ2.pdf) problem. The proposed has a signifiacant speed advantage over EM algorithm.
 
 This package is written and maintained by Yifan Yang (<mailto:yifan.yang@uky.edu>), and co-authored by Dr Zhou (<http://www.ms.uky.edu/~mai/>). The package is released on CRAN (http://cran.r-project.org/web/packages/kmc/). 
 
@@ -10,7 +12,7 @@ Installation
 ============
 One can install the development version uisng
 
-```{r}
+```r
 library(devtools); 
 install_github('kmc', 'yfyang86');
 ```
@@ -21,9 +23,9 @@ Examples
 One/two constraints
 ------------
 
-Run the following code in R with only one null hypothesis E[X]=\int x d F(x) = 3.7. :
+Run the following code in R with only one null hypothesis $E[X]=\int x d F(x) = 3.7.$ :
 
-```{r}
+```r
 library(kmc)
 x <- c(1, 1.5, 2, 3, 4.2, 5, 6.1, 5.3, 4.5, 0.9, 2.1, 4.3)
 d <- c(1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1)
@@ -46,9 +48,9 @@ Est  -17.5198            -17.8273              0.6150    0.4329
 
 ```
 
-If we add another constraint: E[X^2]=16.5, then 
+If we add another constraint: $E[X^2]=16.5$, then 
 
-```{r}
+```r
 > myfun5 <- function(x) {
 +     x^2 - 16.5
 + }
@@ -73,9 +75,9 @@ Est  -17.5198            -17.8345              0.6293    0.7301
 
 Contour Plot
 --------------
-If there were two constraints, we could plot a contour plot for the log-likelihood. Typically, 30 X 30 data points, are used to draw the contour plot, which means the computation repeats 900 times.
+If there were two constraints, we could plot a contour plot for the log-likelihood. Typically, $30 \times 30$ data points, are used to draw the contour plot, which means the computation repeats 900 times.
 
-```{r}
+```r
 ZZ <- plotkmc2D(re0)
 ```
 
@@ -85,7 +87,7 @@ This package offers a naive contour plot. One can use `ZZ` to draw contour plot 
 
 A careful tuning version is 
 
-```{r}
+```r
 #!/usr/local/bin/Rscript
 # file: TESTKMC.R
 args <- commandArgs(TRUE)
@@ -109,7 +111,7 @@ ZZ <-  plotkmc2D(re0,range0 = c(0.1, .4, 30))
 
 ![contour2](./data/contour2.png)
 
-This version uses a 30*30 grid to contruct the contour plot on a iMac2007 2.0Hz Core2 machine and only spend (2s to load R): 
+This version uses a 30 by 30 grid to contruct the contour plot on a iMac2007 2.0Hz Core2 machine and only spend (2s to load R): 
 
 ```sh
 time Rscript TESTKMC.R 4.0 18.6
@@ -119,7 +121,7 @@ sys0m0.240s
 ```
 Real Data Example
 --------------------------
-`stanford5`: stanford heart transplant data contains 152 observations. We could draw a contour plot of intercept and slope.
+The speed advantage of KMC algorithm could be used in time consuming analysis such as drawing contour plot. In this real data example, we illustrate the proposed algorithm to analyze the Stanford heart transplants program described in (Miller 1982). There were 157 patients who received transplants collected in the data, among which 55 were still alive and 102 were deceased. Besides, the survival time were scaled by 365.25. We could draw a contour plot of intercept and slope for a AFT model.
 
 ```r
 LL= 50
@@ -197,18 +199,25 @@ The countour plot is
 
 ![contour](./data/Fig2.png)
 
+Another one concentrates on two hypothesizes on survival function are considered: $H_0^{(1)}: ~ Mean=\int x d F(x)=\mu ; ~ H_0^{(2)}: ~ F(3)=\int I(x\leq 3) d F(x)=\nu$.
+
+![contour2](./data/cn2.png)
+
+Here, $30\times 30$ combinations of $(\mu,\nu)$ near NPMLE($0.5569$,$3.061$), i.e. value plugged in with Kaplan Meier estimation, were used to construct a contour plot of the constrained log empirical likelihood. On the same computer, the program finished in 17 seconds.  EM based method could also reproduce the same plot, but the time spend is not evaluated as some values fails to converge within 2 minutes.
+
+
 Initial value
 -------------
 There are known issues on some scenario when dealing with more than one constraint. According to our simulation, automatic tuning strategy fails under some constraints. One can always use proper initial values, and I will add additional strategies in future work.
 
 In current developing version, this package depends on `rootSolve::multiroot`, which provides a lot of options. 
 
-### Update
- 1. After rootSolve was updated, `kmc` doesn't work on option: `em.boost=T` or `using.C=T`. The safe option to calculate the model is 
- 
- ```
- kmc.solve( x,d,g,em.boost=F,using.num=T,using.Fortran=T,using.C=F,em.it=10)
- ```
+Update
+------
+ 1. After rootSolve was updated, `kmc` doesn't work on option: `em.boost=T` or `using.C=T`. The safe option to calculate the model is    
+  ```r
+  kmc.solve( x,d,g,em.boost=F,using.num=T,using.Fortran=T,using.C=F,em.it=10)
+  ```
  This issue is related to initial value selection problem.    
  2. The next version may remove the dependency on `rootSolve` and [solution](./src/common_kmc.h") is a trying which depends on [Eigen](http://eigen.tuxfamily.org/).    
  3. I will delete the dependency on Rcpp as it prevent the package works on Mac 10.6.
