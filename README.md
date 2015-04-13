@@ -1,6 +1,10 @@
 KMC
 ===
-This is the R package 'kmc'(Kaplan Meier estimator with Constraints) written and maintained by Yifan Yang (<mailto:yifan.yang@uky.edu>), and co-authored by Dr Zhou (<http://www.ms.uky.edu/~mai/>). The package is released on CRAN (http://cran.r-project.org/web/packages/kmc/). 
+
+The Kaplan-Meier estimator is very popular in analysis of survival data. However, it is not easy to compute the *constrained* Kaplan-Meier. Current computational method uses expectationmaximization algorithm to achieve this, but can be slow at many situations. In this package we give a recursive computational algorithm for the *constrained* Kaplan-Meier estimator. The constraint is assumed given in **linear** estimating equations or **mean functions**. We also illustrate how this leads to the empirical likelihood ratio test with right censored data and apply it to test non-parametric [AFT](http://www.ms.uky.edu/~mai/research/BJ2.pdf) problem. The proposed has a signifiacant speed advantage over EM algorithm.
+
+This package is written and maintained by Yifan Yang (<mailto:yifan.yang@uky.edu>), and co-authored by Dr Zhou (<http://www.ms.uky.edu/~mai/>). The package is released on CRAN (http://cran.r-project.org/web/packages/kmc/). 
+
 
 Installation
 ============
@@ -82,7 +86,7 @@ This package offers a naive contour plot. One can use `ZZ` to draw contour plot 
 A careful tuning version is 
 
 ```{r}
-#!/usr/local/bin/Rscripta
+#!/usr/local/bin/Rscript
 # file: TESTKMC.R
 args <- commandArgs(TRUE)
 
