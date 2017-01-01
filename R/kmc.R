@@ -225,10 +225,10 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
 	)
  if (!is.na(result$S[1])){
 			loglik.ha<-kmc.el(delta,result$omega,result$S)
-			re.tmp <- list(loglik.null=loglik.null,loglik.h0=loglik.ha,"-2llr"=-2*(loglik.ha-loglik.null),g=g,time=x,status=d,phat=result$omega,pvalue=1-qchisq(-2*(loglik.ha-loglik.null),df=length(g)),lambda=lambda);
-			if (re.tmp[["-2llr"]]>100) warning('\nThe results may be not feasible!\n');
+			re.tmp <- list(loglik.null=loglik.null,loglik.h0=loglik.ha,"-2LLR"=-2*(loglik.ha-loglik.null),g=g,time=x,status=d,phat=result$omega,pvalue=1-qchisq(-2*(loglik.ha-loglik.null),df=length(g)),lambda=lambda);
+			if (re.tmp[["-2LLR"]]>100) warning('\nThe results may be not feasible!\n');
 		}else{
-			re.tmp <- list(loglik.null=loglik.null,loglik.h0=NA,"-2llr"=NA,g=g,time=x,status=d,phat=NA,pvalue=NA,df=NA,lambda=NA);
+			re.tmp <- list(loglik.null=loglik.null,loglik.h0=NA,"-2LLR"=NA,g=g,time=x,status=d,phat=NA,pvalue=NA,df=NA,lambda=NA);
 		}
     class(re.tmp)<-"kmcS3";
 	return(re.tmp);
@@ -300,7 +300,7 @@ kmc.bjtest<-function(
 
 plotkmc2D <-function(resultkmc,flist=list(f1=function(x){x},f2=function(x){x^2}),range0=c(0.2,3,20)){
 	tmp.df=length(resultkmc$g);
-	xx<-resultkmc[["-2llr"]];
+	xx<-resultkmc[["-2LLR"]];
 	xl<-seq(0,max(6,xx+2),0.01)
 	plot(xl,dchisq(xl,df=tmp.df),type='l',main='Kaplan-Meier Estimator with Constraint',xlab="X",ylab="Probabilty");
 	points(xx,dchisq(xx,df=tmp.df),col='red',lty=2,type='h');

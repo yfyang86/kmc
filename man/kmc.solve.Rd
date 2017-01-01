@@ -63,8 +63,8 @@ The development version won't check the constraint is proper or not. Besides, an
  \item{loglik.h0}{
  	log empirical likelihood with constraints
  }
- \item{"-2llr"}{
- 	-2 Log empirical likelihood
+ \item{"-2LLR"}{
+ 	-2 Log empirical likelihood ratio
  }
  \item{phat}{
  	\deqn{\Delta F(T_i)}
