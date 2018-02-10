@@ -33,3 +33,16 @@ BEGIN_RCPP
 END_RCPP
 }
 
+List RevCHECK(SEXP x);
+
+RcppExport SEXP kmcRCPP_RevCHECK(SEXP gmat){
+BEGIN_RCPP
+    SEXP __sexp_result;
+  {
+    List __result = RevCHECK(gmat);
+    PROTECT(__sexp_result = Rcpp::wrap(__result));
+  }
+  UNPROTECT(1);
+  return __sexp_result;
+END_RCPP
+}

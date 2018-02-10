@@ -34,6 +34,26 @@ double sum(double *x,double * mat,int col,int p){// <x,mat[,col]>
     return re;
 }
 
+double signcheck(NumericMatrix x){
+  int size_x = x.ncol()*x.nrow();
+  int sign_flg = 0;
+  int sign_flg_ = 0;
+  int zero_flg_ = 0;
+  for (int i=0;i<x.nrow();i++)for (int j=0;j<x.ncol();j++) {
+    if (x(i,j)>0) sign_flg++;
+    if (x(i,j)<0) sign_flg_++;
+      if (fabs(x(i,j)<1e-14)) zero_flg_++;
+  }// check ==0 is troublesome
+    
+               if (sign_flg > 0  & sign_flg_ > 0 ){
+                   return(1);
+               }else{
+                   return(0);
+               }
+ 
+    
+}
+
 
 
 #endif

@@ -225,7 +225,7 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
 	)
  if (!is.na(result$S[1])){
 			loglik.ha<-kmc.el(delta,result$omega,result$S)
-			re.tmp <- list(loglik.null=loglik.null,loglik.h0=loglik.ha,"-2LLR"=-2*(loglik.ha-loglik.null),g=g,time=x,status=d,phat=result$omega,pvalue=1-qchisq(-2*(loglik.ha-loglik.null),df=length(g)),lambda=lambda);
+			re.tmp <- list(loglik.null=loglik.null,loglik.h0=loglik.ha,"-2LLR"=-2*(loglik.ha-loglik.null),g=g,time=x,status=d,phat=result$omega,pvalue=1-pchisq(-2*(loglik.ha-loglik.null),df=length(g)),lambda=lambda);
 			if (re.tmp[["-2LLR"]]>100) warning('\nThe results may be not feasible!\n');
 		}else{
 			re.tmp <- list(loglik.null=loglik.null,loglik.h0=NA,"-2LLR"=NA,g=g,time=x,status=d,phat=NA,pvalue=NA,df=NA,lambda=NA);

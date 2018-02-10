@@ -1,5 +1,40 @@
 #include "common.h"
 
+List RevCHECK(SEXP xx) {
+  NumericMatrix x(xx);
+  List re;
+  NumericVector rr(1);
+  if (x.nrow() !=2 ) {
+    rr(0) = signcheck(x);
+  }else{
+      
+      int sign_flg = 0;
+      int sign_flg_ = 0;
+      int zero_flg_ = 0;
+      std::vector<int> pos_in(x.ncol());
+      std::vector<int> neg_in(x.ncol());
+      for (int j=0;j<x.ncol();j++) {
+          if (x(0,j)>0) {pos_in[sign_flg]=j;sign_flg++;}
+          if (x(0,j)<0) {neg_in[sign_flg_]=j;sign_flg_++;}
+      }
+      
+      NumericMatrix Amat(1, sign_flg * sign_flg_ );
+      
+      int ind=0;
+      for(int i = 0; i< sign_flg;i++){
+          for(int j = 0; j<sign_flg_;j++){
+              Amat(0,ind) = x(0,pos_in[i])*x(1,neg_in[j]) - x(0,neg_in[j])*x(1,pos_in[i]);
+              ind++;
+          }
+      }
+      rr(0) = signcheck(Amat);
+      //re("Amat") = Amat;
+  }
+  re("flg") = rr;
+  return(re);
+}
+
+
 List omegalambda(SEXP kmctime,SEXP delta,SEXP lambda,SEXP gtmat){
     /* 
     // kmctime: T
@@ -119,7 +154,7 @@ List RCPP_KMCDATA(SEXP kmctime,SEXP delta,SEXP lambda,SEXP gtmat){
 }
 
 extern "C"{
-    
+
     void nocopy_kmc_data(int * delta,double *
                          gtmat, double *lam, int *np,double * chk){
         //chk[p]

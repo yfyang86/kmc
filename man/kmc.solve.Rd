@@ -19,25 +19,25 @@ kmc.solve(x, d, g, em.boost = T, using.num = T, using.Fortran =
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-      Possitive time
+     Non-negative real vector. The observed time.
 }
   \item{d}{
-      Status, 0: right censored; 1 uncensored
+      0/1 vector. Censoring status indictator, 0: right censored; 1 uncensored
 }
   \item{g}{
 list of contraint functions. It should be a list of functions list(f1,f2,...) 
 }
   \item{em.boost}{
-  	 logical asking whether to use EM to get the initial value, default=TRUE. See 'Details' for EM control.
+  	 A logical value. It determines whether the EM algorithm is used to get the initial value, default=TRUE. See 'Details' for EM control.
 }
 \item{using.num}{
-  	 logical asking whether to use numeric derivative in iterations, default=TRUE.
+  	 A logical value. It determines whether the numeric derivatives is used in iterations, default=TRUE.
 }
 \item{using.Fortran}{
-  	 logical asking whether to use Fortran in root solving, default=F.
+  	 A logical value. It determines whether Fortran is used in root solving, default=F.
 }
 \item{using.C}{
-	logical asking whether to use Rcpp in iteraruib, default=T. This option will promote the performance of KMC algorithm. Development version works on one constraint only, otherwise it will generate a Error information. It won't work on using.num=F.
+	A logical value. It determines whether to use Rcpp in iteraruib, default=T. This option will promote the computational efficiency of the KMC algorithm. Development version works on one constraint only, otherwise it will generate a Error information. It won't work on using.num=F.
 }
 \item{tmp.tag}{
 	Development version needs it, keep it as TRUE.
@@ -46,31 +46,31 @@ list of contraint functions. It should be a list of functions list(f1,f2,...)
 	Tolerance used in rootSolve(multiroot) package, see 'rootSolve::multiroot'.
 }
 \item{control}{
-  nr.it controls max iterations allowed in N-R algorithm default=20, nr.c is the scaler used in N-R algorithm default=1,em.it is max iteration if use EM algorithm (em.boost) to get the initial value of lambda, default=3.
+  A list. The entry nr.it controls max iterations allowed in N-R algorithm default=20; nr.c is the scaler used in N-R algorithm default=1; em.it is max iteration if use EM algorithm (em.boost) to get the initial value of lambda, default=3.
 }
 \item{...}{
 Unspecified yet.
 }
 }
 \details{
-The development version won't check the constraint is proper or not. Besides, an extrordinary large number will be generated when numeric method/constraint(s) fails.
+The function check_G_mat checks whether the solution space is null or not under the constraint. But due to the computational complexity, it will detect at most two conditions.
 }
 \value{
- a list with the following components:
+ A list with the following components:
  \item{loglik.ha}{
- 	log empirical  likelihood without constraints
+ 	The log empirical  likelihood without constraints
  }
  \item{loglik.h0}{
- 	log empirical likelihood with constraints
+ 	The log empirical likelihood with constraints
  }
  \item{"-2LLR"}{
- 	-2 Log empirical likelihood ratio
+ 	The -2 Log empirical likelihood ratio
  }
  \item{phat}{
  	\deqn{\Delta F(T_i)}
  }
  \item{pvalue}{
-  p-value of the test
+  The p-value of the test
  }
  \item{df}{
   Degree(s) of freedom. It equals the number of constraints.
