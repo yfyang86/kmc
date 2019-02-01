@@ -53,9 +53,9 @@ int n=Gtmat.ncol();
 double tmp=0.;
 NumericVector S(n);
 //NumericVector uncenloc(floor(sum(Delta)));
-    int cenlocL=n-floor(sum(Delta));
+int cenlocL=n-floor(sum(Delta));
 NumericVector cenloc(cenlocL);
-    int intflg=0;
+int intflg=0;
 for (int i=0;i<n;i++){
 	if (Delta(i)<.5) {
         cenloc(intflg)=i;//==0

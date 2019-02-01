@@ -223,7 +223,8 @@ Update
  3. I will delete the dependency on Rcpp as it prevent the package works on Mac 10.6.
  4. introduce a C++ port for `emplik::el.cen.EM` and it has been approved in `emplik` package.    
  5. A redesigned data structure with C++ implement: `nocopy_kmc_data` in [src](./src/kmc.cpp).
-
+ 6. `omega.lambda` update
+ 7. 
 Bug Report
 --------------
 

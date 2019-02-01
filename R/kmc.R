@@ -11,10 +11,12 @@ kmc.clean <- function(kmc.time,delta){
   #TASK:
   #1 sort T
   #2 the first is uncen!
-  n=length(kmc.time);
-  tmp <- sort(kmc.time,index.return=TRUE);
-  kmc.time=kmc.time[tmp$ix];
-  delta=delta[tmp$ix];
+  
+  n <- length(kmc.time)
+  dataOrder <- order(kmc.time, -delta)
+  kmc.time <- kmc.time[dataOrder]
+  delta <- delta[dataOrder]             ### changed 10/2018
+
   FirstUnCenLocation<-which(delta==1)[1];
   if (FirstUnCenLocation==n) {stop('Only one uncensored point.');}
   if (FirstUnCenLocation!=1){
@@ -36,24 +38,43 @@ omega.lambda<-cmpfun(function(kmc.time,delta,lambda,g,gt.mat){
   #iter
   p=length(g);# the number of constraint
   n=length(kmc.time);
-  uncen.loc<- which(delta==1);
-  cen.loc<- which(delta==0);
-  delta[n]=1
-  #########################################
-
-  u.omega<-numeric(n);
-  u.omega[1]<-1/(n-sum(lambda*gt.mat[,1]));
-  for (k in 2:n){
-    if (delta[k]==1){
-      S <- 1-cumsum(u.omega);#need to update every kmc.time(add in one entry each kmc.time)
-      SCenLoc<-cen.loc[cen.loc%in%(1:(k-1))];
-      S.cen=0;
-      if (length(SCenLoc)!=0){S.cen=sum(1/S[SCenLoc])}
-      u.omega[k]=1/(n-sum(lambda*gt.mat[,k])-S.cen)
-      #cat(':::',sum(omega),'\n')
+  if ( p == 1){
+    ### 1 constraint: offered by Dr Zhou.
+      n <- length(delta)
+      delta[n] <- 1
+      u.omega <- rep(0, n)   ##### all be zero to begin
+      u.omega[1] <- 1/(n - lambda*gt.mat[1])  ## first entry
+      S <- rep(1.0, n)
+      S.cen <- 0
+      for (k in 2:n){
+        if (delta[k]==0){
+          S[k] <- S[k-1] - u.omega[k-1]
+          S.cen <- S.cen + 1/S[k]}
+        else{
+          u.omega[k] <- 1/(n - lambda*gt.mat[k] - S.cen)
+          S[k] <- S[k-1] - u.omega[k-1] }
+      }
+      # return(list(S=S,omega=u.omega, mea= sum(gt*u.omega)))
+      return(list(S=S,omega=u.omega, gt = gt));
+  }else(
+    uncen.loc<- which(delta==1);
+    cen.loc<- which(delta==0);
+    delta[n]=1
+    #########################################
+    u.omega<-numeric(n);
+    u.omega[1]<-1/(n-sum(lambda*gt.mat[,1]));
+    for (k in 2:n){
+      if (delta[k]==1){
+        S <- 1-cumsum(u.omega);#need to update every kmc.time(add in one entry each kmc.time)
+        SCenLoc<-cen.loc[cen.loc%in%(1:(k-1))];
+        S.cen=0;
+        if (length(SCenLoc)!=0){S.cen=sum(1/S[SCenLoc])}
+        u.omega[k]=1/(n-sum(lambda*gt.mat[,k])-S.cen)
+        #cat(':::',sum(omega),'\n')
+      }
     }
-  }
-  return(list(S=S,omega=u.omega,gt=gt.mat));
+    return(list(S=S,omega=u.omega,gt=gt.mat));
+  )
 }
 )
 
@@ -82,9 +103,6 @@ omega.lambda12<-cmpfun(function(kmc.time,delta,lambda,g, gt.mat){
   cen.loc<- which(delta==0);
   delta[n]=1
   #########################################
-  #gt.mat<-matrix(0,p,n);
-  #for(i in 1:p){for (j in 1:n) { gt.mat[i,j]=g[[i]](kmc.time[j])}}
-  #for(i in 1:p) gt.mat[i,]=g[[i]](kmc.time);
   u.omega<-numeric(n);
   udev.omega<-matrix(0,p,n);
   u.omega[1]<-1/(n-sum(lambda*gt.mat[,1]));
