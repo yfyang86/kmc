@@ -1,7 +1,7 @@
 Package: kmc
-Version: 0.2-0
-Title: Kaplan-Meier estimator with constraints for right censored
-        data -- a recursive computational algorithm
+Version: 0.2-1
+Title: Kaplan-Meier Estimator with Constraints for Right Censored
+        Data -- a Recursive Computational Algorithm
 Author: Yifan Yang <yifan.yang@uky.edu> , Mai Zhou<mai@ms.uky.edu>
 Maintainer: Yifan Yang <yifan.yang@uky.edu>
 Description: Given constraints for right censored data, we use a recursive computational algorithm to calculate the the "constrained" Kaplan-Meier estimator. The constraint is assumed given in linear estimating equations or mean functions. We also illustrate how this leads to the empirical likelihood ratio test with right censored data and accelerated failure time model with given coefficients. EM algorithm from emplik package is used to get the initial value.

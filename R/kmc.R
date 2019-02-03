@@ -55,8 +55,8 @@ omega.lambda<-cmpfun(function(kmc.time,delta,lambda,g,gt.mat){
           S[k] <- S[k-1] - u.omega[k-1] }
       }
       # return(list(S=S,omega=u.omega, mea= sum(gt*u.omega)))
-      return(list(S=S,omega=u.omega, gt = gt));
-  }else(
+      return(list(S=S,omega=u.omega, gt = gt));
+  }else{
     uncen.loc<- which(delta==1);
     cen.loc<- which(delta==0);
     delta[n]=1
@@ -74,7 +74,7 @@ omega.lambda<-cmpfun(function(kmc.time,delta,lambda,g,gt.mat){
       }
     }
     return(list(S=S,omega=u.omega,gt=gt.mat));
-  )
+}
 }
 )
 
