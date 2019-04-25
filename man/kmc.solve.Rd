@@ -92,7 +92,7 @@ A recursive formula for the Kaplan-Meier estimator with mean constraints and its
 
 
 \seealso{
-	  	\code{\link{plotkmc2D}}, \code{\link{print.kmcS3}}.
+	  	\code{\link{plotkmc2D}}.
 }
 \examples{
 x <- c( 1, 1.5, 2, 3, 4.2, 5.0, 6.1, 5.3, 4.5, 0.9, 2.1, 4.3) # positive time
@@ -115,12 +115,32 @@ kmc.solve( x,d,g,using.C=TRUE) ;                              #using Rcpp
 myfun5 <- function( x)  { 
  x^2-16.5
 } 
-g=list( f1=f,f2=myfun5) ;                                     #define constraint as a list
-kmc.solve( x,d,g) ->re0;
-print(re0);                                                   #print method, plain ASCII
-print(re0,5);                                                 #print method, digits=5,plain ASCII
-print(re0,type='md');                                         #print method, output GIT Markdown
-#summary(re0) is under developing.
+
+g = list( f1=f,f2=myfun5) ;                                     #define constraint as a list
+
+re0 <- kmc.solve( x,d,g);
+
+#################
+# Print Estimation and other information 
+# with option: digits = 5
+#################
+f_print <- function(x, digits = 5){
+        cat("\n---------------------------------------------------------------------------------\n")
+        cat("A Recursive Formula for the Kaplan-Meier Estimator with Constraint\n")
+        cat("Information:\n")
+        cat("Number of Constraints:\t", length(x$g), "\n")
+        cat("lamda(s):\t",x$lambda,'\n');
+        cat("\n---------------------------------------------------------------------------------\n")
+        names <- c("Log-likelihood(Ha)", "Log-likelihood(H0)",
+        "-2LLR", paste("p-Value(df=", length(x$g), ")",sep = ""))
+        re <- matrix(c(x[[1]], x[[2]], x[[3]], 1 - pchisq(x[[3]],
+        length(x$g))), nrow = 1)
+        colnames(re) <- names
+        rownames(re) <- "Est"
+        print.default(format(re, digits = digits), print.gap = 2,
+        quote = FALSE, df = length(x$g))
+        cat("---------------------------------------------------------------------------------\n")
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
+f_print(re0)
+
+}
