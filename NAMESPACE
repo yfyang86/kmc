@@ -1,8 +1,7 @@
 # to make package functions available use export(functionName1, functionName2, ...)
-useDynLib(kmc)
+useDynLib(kmc, .registration = TRUE)
 import(emplik, rootSolve)
 importFrom(compiler,cmpfun)
-export("kmc.solve","plotkmc2D","print.kmcS3","kmc.bjtest","check_G_mat")
+export("kmc.solve","plotkmc2D","kmc.bjtest")
 importFrom("graphics", "contour", "par", "plot", "points")
 importFrom("stats", "dchisq", "pchisq", "qchisq")
-

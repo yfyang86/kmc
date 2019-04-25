@@ -55,7 +55,7 @@ omega.lambda<-cmpfun(function(kmc.time,delta,lambda,g,gt.mat){
           S[k] <- S[k-1] - u.omega[k-1] }
       }
       # return(list(S=S,omega=u.omega, mea= sum(gt*u.omega)))
-      return(list(S=S,omega=u.omega, gt = gt));
+      return(list(S=S,omega=u.omega, gt = gt.mat));
   }else{
     uncen.loc<- which(delta==1);
     cen.loc<- which(delta==0);
@@ -230,7 +230,7 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
     if(em.boost & (length(g)==1) ){
 		loglik.null<- WKM(kmc.time,delta)$logel
 	}else{
-        omega.lambda(kmc.time=kmc.time,delta=delta,lambda=0,g=g,gt.mat=gt.mat)->re0; ## set lambda=0, it compute KM-est
+        omega.lambda(kmc.time=kmc.time, delta=delta, lambda=0, g=g, gt.mat=gt.mat)->re0; ## set lambda=0, it compute KM-est
         loglik.null<- kmc.el(delta,re0$omega,re0$S)
  	}
     result<-tryCatch(

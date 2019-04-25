@@ -50,8 +50,7 @@ myfun5 <- function( x)  {
 g=list( f1=f,f2=myfun5) ; 
 kmc.solve( x,d,g) ->re0;
 
-#plotkmc2D( re0) ->ZZ; # run this to generate contour plot
-
+#plotkmc2D(re0) ->ZZ; # run this to generate contour plot
 #Advanced PLOT option using ggplot2: not run
 #library(reshape2)
 #volcano3d <- melt(ZZ$Z)

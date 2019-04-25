@@ -10,7 +10,7 @@ List RevCHECK(SEXP xx) {
       
       int sign_flg = 0;
       int sign_flg_ = 0;
-      int zero_flg_ = 0;
+      // int zero_flg_ = 0;
       std::vector<int> pos_in(x.ncol());
       std::vector<int> neg_in(x.ncol());
       for (int j=0;j<x.ncol();j++) {
@@ -96,7 +96,7 @@ List RCPP_KMCDATA(SEXP kmctime,SEXP delta,SEXP lambda,SEXP gtmat){
     RNGScope scope;
     NumericMatrix Gtmat(gtmat);
     NumericVector Kmctime(kmctime),Delta(delta);
-    int samplesize_N;
+    // int samplesize_N;
     vector<double> Lambda=Rcpp::as< std::vector<double> >(lambda);
     //int p=Gtmat.nrow();
     int n=Gtmat.ncol();// len of delta/omgea
