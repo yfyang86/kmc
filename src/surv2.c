@@ -123,8 +123,9 @@ double R_zeroin2surv(
     return b;
 }
 
-
-
+/**
+ * @brief Cummulative summation
+*/
 void cumsumsurv(double * x, double * s,int *LLL)
 {
     double sum = 0.;
@@ -135,27 +136,9 @@ void cumsumsurv(double * x, double * s,int *LLL)
     }
 }
 
-/*
-for (i in 1:m) {
-wd1new[k[i]:n] <- wd1new[k[i]:n] + wd0[i] * pnew[k[i]:n]/sur[k[i]]
-}
- C-port:
- wd1new=wd1newtruncRC(wd1new,wd0=wd0,k,pnew,sur,m,n)
- 
- wd1newtruncRC<-function(wd1new,wd0,k,pnew,sur,m,n){
- re<-.C('wd1newtrunc',
- wd1new=wd1new,
- wd0=as.numeric(wd0),
- k=as.integer(k),
- pnew=as.numeric(pnew),
- surv=as.numeric(sur),
- mLength=as.integer(m),
- nSampleSize=as.integer(n)
- )
- return(re$wd1new);
- }
+/**
+ * @brief Calculate Wd-right censored (update). Profiling results shows this will accerate the original R function.
 */
-
 void wd1newtrunc(double * wd1new,double *wd0,int *k,double * pnew, double * surv,int * mLength,int *nSampleSize){
     int i=0,j=0;
     for (i=0;i<mLength[0];i++){
@@ -164,6 +147,9 @@ void wd1newtrunc(double * wd1new,double *wd0,int *k,double * pnew, double * surv
     }
 }
 
+/**
+ * @brief Calculate Wd-left censored (update). Profiling results shows this will accerate the original R function.
+*/
 void wd1newtruncLeft(double * wd1enw,double *wd0,int *k,double * pnew, double * surv,int * mLength,int *nSampleSize){
     int i=0,j=0;
     for (i=0;i<mLength[0];i++){
@@ -172,37 +158,33 @@ void wd1newtruncLeft(double * wd1enw,double *wd0,int *k,double * pnew, double * 
     }
 }
 
+
 double lamfunC(double  lambda,double * x, double mu,double * wt,double allw,int L){
 int i=0; double re=0.;
 for (;i<L;i++) re+=wt[i]*(x[i]-mu)/(allw+lambda*(x[i]-mu));
 return(re);
 }
 
-inline double summm(double *x,int L){
-int i=0;double re=0.;
-for (;i<L;i++){
-re+=x[i];
-}
-return(re);
-}
-
-inline double maxabs(double *x, double mu,int L){
-int i=0;double re=fabs(x[0]-mu);
-for(;i<L;i++){
-if (fabs(x[i]-mu)>re) re=fabs(x[i]-mu);
-}
-return(re);
-}
-
 void eltestwt (double *x, double *wt, double * mu1,int *Lx1,double *pi,double *lamre) {
 double mu=mu1[0];
 double Lx=Lx1[0];
-double allw = summm(wt,Lx);
-double BU = 0.02*allw/maxabs(x,mu,Lx);
+double allw = 0.;
+double BU;
 double lam0=0.,lo,up;
 double toldouble[1]={1e-9};/*tolerance used in root searching*/
 int MAXITER[1]={1000};
 int i=0;
+double re=0.;
+
+
+for (i=0;i<Lx;i++){allw+=wt[i];}
+BU = fabs(x[0]-mu);
+for(i=0;i<Lx;i++){
+if (fabs(x[i]-mu)>BU) BU=fabs(x[i]-mu);
+}
+
+BU = 0.02*allw/BU;
+
 if (lamfunC(0,x,mu,wt,allw,Lx) == 0){ 
   lam0 = 0.;
 } else {
@@ -227,11 +209,8 @@ lamre[0]=lam0;
 
 }
 /*
-void eltestwt2 (double *x, double *wt, double * mu1,int *Lx1,double *pi,double * HessianMatrix,int useHessian,double *lamre){
 
-}
- */
-
+*/
 void locLastZero(int *target,int* l,int *re){
     int nn = 0[l];
     int i=1;
