@@ -1,16 +1,18 @@
 KMC
 ===
 
-The Kaplan-Meier estimator is very popular in analysis of survival data. However, it is not easy to compute the *constrained* Kaplan-Meier. Current computational method uses expectationmaximization algorithm to achieve this, but can be slow at many situations. In this package we give a recursive computational algorithm for the *constrained* Kaplan-Meier estimator. The constraint is assumed given in **linear** estimating equations or **mean functions**. 
+The Kaplan-Meier estimator is very popular in analysis of survival data. However, it is not easy to compute the *constrained* Kaplan-Meier. Current computational method uses the expectation maximization (EM) algorithm to achieve this, but can be slow at many situations. In this package we give a recursive computational algorithm for the *constrained* Kaplan-Meier estimator. The constraint is assumed given in **linear** estimating equations or **mean functions**. 
+
 ![MeanPlot](./data/KMplot.png)
-We also illustrate how this leads to the empirical likelihood ratio test with right censored data and apply it to test non-parametric [AFT](http://www.ms.uky.edu/~mai/research/BJ2.pdf) problem. The proposed has a signifiacant speed advantage over EM algorithm.
+
+We also illustrate how this leads to the empirical likelihood ratio test with right censored data and apply it to test non-parametric [AFT](http://www.ms.uky.edu/~mai/research/BJ2.pdf) problem. The proposed has a significant speed advantage over EM algorithm.
 
 This package is written and maintained by Yifan Yang (<mailto:yifan.yang@uky.edu>), and co-authored by Dr Zhou (<http://www.ms.uky.edu/~mai/>). The package is released on CRAN (http://cran.r-project.org/web/packages/kmc/). 
 
 
 Installation
 ============
-One can install the development version uisng
+One can install the development version using
 
 ```r
 library(devtools); 
@@ -111,7 +113,7 @@ ZZ <-  plotkmc2D(re0,range0 = c(0.1, .4, 30))
 
 ![contour2](./data/contour2.png)
 
-This version uses a 30 by 30 grid to contruct the contour plot on a iMac2007 2.0Hz Core2 machine and only spend (2s to load R): 
+This version uses a 30 by 30 grid to construct the contour plot on a iMac2007 2.0Hz Core2 machine and only spend (2s to load R): 
 
 ```sh
 time Rscript TESTKMC.R 4.0 18.6
@@ -220,12 +222,11 @@ Update
   ```
  This issue is related to initial value selection problem.    
  2. The next version may remove the dependency on `rootSolve` and [solution](./src/common_kmc.h) is a trying which depends on [Eigen](http://eigen.tuxfamily.org/).    
- 3. I will delete the dependency on Rcpp as it prevent the package works on Mac 10.6.
+ 3. [x] I will delete the dependency on `Rcpp` as it prevent the package works on Mac 10.6. (Fixed, no longer in plan)
  4. introduce a C++ port for `emplik::el.cen.EM` and it has been approved in `emplik` package.    
  5. A redesigned data structure with C++ implement: `nocopy_kmc_data` in [src](./src/kmc.cpp).
- 6. `omega.lambda` update
- 7. 
-Bug Report
---------------
+ 6. Multiple `omega.lambda` update strategies.
+ 
+# Bug Report
 
-Please contact Yifan Yang (<mailto:yifan.yang@uky.edu>), or leave feed back on the github page.
+Please contact Yifan Yang (<mailto:yfyang.86@gmail.com>), or leave feed back on the Github page.
