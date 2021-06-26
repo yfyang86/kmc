@@ -148,6 +148,9 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
     if ('nr.c'%in%names(control)){nr.c=control$nr.c;if (nr.c>1) {warning("In N-R iteration, C should be between 0 and 1");nr.c=1}  }else{nr.c=1} #NR scaler
     if ('em.it'%in%names(control)){ em.it=control$em.it; if (em.it>10) em.it=10}else{em.it=3} # EM iteration
     
+    experimental = F; if ('experimental' %in% names(control)){experimental=T}
+    default.init = rep(0., length(g)); if ('default.init' %in% names(control)){default.init=control[["default.init"]]}
+
     ###### end of checking PHASE 1  ######
     kmc.clean(kmc.time=x,delta=d)->re
     kmc.time=re$kmc.time;
@@ -192,7 +195,31 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
       if (i==it){ cat('\nMay not converge.\n')}else cat('\nConverged!\n')
       re
     }
-    
+
+  if (experimental){
+
+    fun.C <- function(lam){
+      w = kmc_routine5(delta, lam, gt.mat)
+      return((gt.mat%*%w));
+    }
+
+    if (p==1){
+    fun.C2 <- function(lam){
+          w =  kmc_routine5(delta, lam, gt.mat)
+          return(1-sum((w)));
+        }
+        Cmean = multiroot(start = -2 + default.init, f = fun.C2 )
+    }else{
+      Cmean = NULL
+    }
+      
+
+    Cmu = multiroot(start = default.init, f = fun.C )
+
+
+    return(list(Cmu, Cmean));
+
+  } 
   if (em.boost){
     if (length(g)==1){
         u.lambda1<-function(re=el.cen.EM.kmc(x=kmc.time,d=delta,fun=g[[1]],mu=0,maxit=em.it,debug.kmc=F)){
