@@ -6,3 +6,11 @@
 *.so
 *.o
 
+./test
+./test/*
+.Rproj.user
+
+
+.Rbuildignore
+.Rhistory
+.idea/*

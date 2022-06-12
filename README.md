@@ -157,8 +157,8 @@ beta.grid <- function(x0,range,n0,type="sq",u=5){
 beta.0 <- beta.grid(beta0,0.05,LL,"l")
 beta.1 <- beta.grid(beta1,.00151,LL,"l")#0.00051
 
-set.seed(1234)
-y=log10(stanford5$time)+runif(152)/1000
+
+y = log10(stanford5$time)
 
 d <- stanford5$status
 
@@ -183,7 +183,7 @@ ZZ[ZZ<0]=NA ## when KMC.BJTEST fails to converge, it'll return a negative value.
 range(ZZ,finite=T) -> zlim
 floor.d<-function(x,n=4){floor(x*10^n)/(10^n)}
 
-postscript("C:/Temp/Fig2_1.eps",width=7,height=7)
+postscript("Fig2_1.eps",width=7,height=7)
 contour(
   y=beta.0,
   x=beta.1,
@@ -195,6 +195,7 @@ contour(
   ylab="Intercept",
   xlab=expression(beta[Age])
   ) 
+dev.off()
 ```
 
 The countour plot is 

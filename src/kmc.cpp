@@ -1,5 +1,8 @@
 #include "common.h"
 #include <vector>
+#include <Rcpp.h>
+#include <iostream>
+
 
 List RevCHECK(SEXP xx) {
   NumericMatrix x(xx);
@@ -156,15 +159,14 @@ List RCPP_KMCDATA(SEXP kmctime,SEXP delta,SEXP lambda,SEXP gtmat){
 
 extern "C"{
     void nocopy_kmc_data(int * delta,double * gtmat, 
-                         double *uomega, int *np,double * chk){
+                         double *uomega, int *np, double * chk){
         //chk[p]
         
         //gtmat \in \mathcal{R}^{p \times n}
         
         int nn=np[1];  // col: sample size
-        int p__=np[0]; // row: number of constraints.
-        double tmp=0.;
-        int i =0;
+        //int p__=np[0]; // row: number of constraints.
+        //double tmp=0.;
 
         vector<double>S(nn);
         int cenlocL=nn;
@@ -188,14 +190,15 @@ extern "C"{
         }
         */
 
-        uomega[i]=1./(((double)nn)- gtmat[i]);//iteration
-        S[i] = 1. - uomega[i];
+        uomega[0]=1./(((double)nn)- gtmat[0]);//iteration
+        S[0] = 1. - uomega[0];
         double Scen=0.;
-        for (int k=0;k<nn;k++){
-            if (delta[k] == 0) Scen += 1/S[i];
+        int k = 0;
+        while (k<nn-1){
+            if (delta[k] ==0) Scen += 1/S[k];
 
-            uomega[i+1] =  (delta[i+1]==1 ? 1./((double) nn - gtmat[i+1] - Scen):0.);
-            S[i+1] = S[i] - uomega[i+1];
+            uomega[k+1] =  (delta[k+1]==1 ? 1./((double) nn - gtmat[k+1] - Scen):0.);
+            S[k+1] = S[k] - uomega[k+1];
             /*if (delta[k]==1){//==1
                 tmp=0.;
                 for (int i=0;i<nn;i++){
@@ -214,6 +217,7 @@ extern "C"{
                 uomega[k]=1./((double)nn-sum(lam,gtmat,k,p__) -Scen);
             }
             */
+           k++;
         }
 
         uomega[nn-1] = ( uomega[nn-1] < 0 ? 0:uomega[nn-1]);
@@ -224,6 +228,14 @@ extern "C"{
 
 
 extern "C"{
+    /**
+     * @param delta: double array of length n;
+     * @param lambda_gt: double array of length, ith entry = <lambda , g(T_i)> 
+     *        Here <.,.> is the inner product;
+     * @param w: jumps length = sum(delata)
+     * @param np: {n, p}  
+     * @test TBD
+    */
     void kmc_native(double * delta, double * lambda_gt, double * w, int *np){
         int n = np[1];
         std::vector<double> S(n);
@@ -234,6 +246,7 @@ extern "C"{
         double sumSjDelta0 = 0;
         S[i] = 1. -  w[i];
         while (i < n - 1){
+            // Iterative Computing: KMC
             if (delta[i] < 0.5) {
             sumSjDelta0 += 1/S[i];
             }
@@ -241,8 +254,11 @@ extern "C"{
             S[i+1] = S[i] - w[i+1];
             i++;
         }
-        //w[n-1] = 1.;
-        //for (size_t j=0; j< n-1; j++) w[n-1] -=  w[j];
+        #ifdef S_ROUTINE_
+        //TODO: 
+        w[n-1] = 1.;
+        for (size_t j=0; j< n-1; j++) w[n-1] -=  w[j];
+        #endif
         w[n-1] = ( w[n-1] < 0 ? 0:w[n-1]);
     }
 }
