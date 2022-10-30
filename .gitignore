@@ -14,3 +14,9 @@
 .Rbuildignore
 .Rhistory
 .idea/*
+
+cars.feather
+derby.log
+metastore_db/*
+spark-warehouse
+spark-warehouse/*/*/*
