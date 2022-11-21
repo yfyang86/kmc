@@ -11,19 +11,15 @@ List RevCHECK(SEXP xx) {
   if (x.nrow() !=2 ) {
     rr(0) = signcheck(x);
   }else{
-      
       int sign_flg = 0;
       int sign_flg_ = 0;
-      // int zero_flg_ = 0;
       std::vector<int> pos_in(x.ncol());
       std::vector<int> neg_in(x.ncol());
       for (int j=0;j<x.ncol();j++) {
           if (x(0,j)>0) {pos_in[sign_flg]=j;sign_flg++;}
           if (x(0,j)<0) {neg_in[sign_flg_]=j;sign_flg_++;}
       }
-      
       NumericMatrix Amat(1, sign_flg * sign_flg_ );
-      
       int ind=0;
       for(int i = 0; i< sign_flg;i++){
           for(int j = 0; j<sign_flg_;j++){
@@ -32,7 +28,6 @@ List RevCHECK(SEXP xx) {
           }
       }
       rr(0) = signcheck(Amat);
-      //re("Amat") = Amat;
   }
   re("flg") = rr;
   return(re);
