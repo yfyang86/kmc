@@ -1,19 +1,15 @@
 check_G_mat <- function(gmat){
-    .Call('kmcRCPP_RevCHECK',PACKAGE='kmc',gmat)
+    .Call('kmcRCPP_RevCHECK',PACKAGE='kmc', gmat)
 }
 
 
 lambdaoo<-function(kmctime,delta,lambda,gtmat){
-.Call('kmcomegalambda', PACKAGE = 'kmc',kmctime,delta,lambda,gtmat)
+.Call('kmcomegalambda', PACKAGE = 'kmc', kmctime,delta,lambda,gtmat)
 }
 
 kmcdata_rcpp<-function(kmctime,delta,lambda,gtmat){
-    .Call('kmcRCPP_KMCDATA', PACKAGE = 'kmc',kmctime,delta,lambda,gtmat)
+    .Call('kmcRCPP_KMCDATA', PACKAGE = 'kmc', kmctime,delta,lambda,gtmat)
 }
-
-
-
-
 
 kmc_routine4<-function( 
 		delta, # status 

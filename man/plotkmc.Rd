@@ -33,7 +33,7 @@ plotkmc2D(resultkmc, flist=list(f1=function(x){x}, f2=function(x){x^2}),
 }
 
 \author{
-Yifan Yang
+Yifan Yang(yfyang.86@hotmail.com)
 }
 
 \examples{

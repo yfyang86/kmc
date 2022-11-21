@@ -78,7 +78,7 @@ A recursive formula for the Kaplan-Meier estimator with mean constraints and its
 
 }
 \author{
-    Mai Zhou(mai@ms.uky.edu), Yifan Yang(yifan.yang@uky.edu)
+    Mai Zhou(mai@ms.uky.edu), Yifan Yang(yfyang.86@hotmail.com)
 
 }
 
