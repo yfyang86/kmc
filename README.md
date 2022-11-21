@@ -126,9 +126,14 @@ Real Data Example
 The speed advantage of KMC algorithm could be used in time consuming analysis such as drawing contour plot. In this real data example, we illustrate the proposed algorithm to analyze the Stanford heart transplants program described in (Miller 1982). There were 157 patients who received transplants collected in the data, among which 55 were still alive and 102 were deceased. Besides, the survival time were scaled by 365.25. We could draw a contour plot of intercept and slope for a AFT model.
 
 ```r
+library(survival)
+
 LL= 50
-beta0 <- 3.52016
-beta1 <- -0.01973458 #-0.0185
+beta0 <- 3.218
+beta1 <- -0.0145
+
+stanford5 <- stanford2[!is.na(stanford2$t5), ]
+
 beta.grid <- function(x0,range,n0,type="sq",u=5){
 	n0 = as.double(n0)
 	if (type=="sq"){
@@ -154,11 +159,12 @@ beta.grid <- function(x0,range,n0,type="sq",u=5){
 		);
 }
 
-beta.0 <- beta.grid(beta0,0.05,LL,"l")
-beta.1 <- beta.grid(beta1,.00151,LL,"l")#0.00051
+beta.0 <- beta.grid(beta0, 0.05, LL,"l")
+beta.1 <- beta.grid(beta1,.003,LL,"l")
 
+set.seed(1234)
 
-y = log10(stanford5$time)
+y=log10(stanford5$time)+runif(157)/1000
 
 d <- stanford5$status
 
@@ -179,23 +185,23 @@ for(ii in 1:(2*LL+1)){
 }
 ZZ2<-ZZ
 ZZ[ZZ<0]=NA ## when KMC.BJTEST fails to converge, it'll return a negative value.
+ZZ[ZZ>0.5]=NA
 
 range(ZZ,finite=T) -> zlim
 floor.d<-function(x,n=4){floor(x*10^n)/(10^n)}
 
-postscript("Fig2_1.eps",width=7,height=7)
 contour(
   y=beta.0,
   x=beta.1,
   ZZ,
-  zlim=c(0,.17),
+  zlim=c(0,1),
   levels=unique(floor.d(
-		beta.grid(x0=mean(zlim),range=diff(zlim)/2,n0=15,type="sqrt",u=10),
+		beta.grid(x0=mean(zlim),range=diff(zlim)/2, n0=15,type="sqrt",u=10),
 		4)),
   ylab="Intercept",
   xlab=expression(beta[Age])
   ) 
-dev.off()
+
 ```
 
 The countour plot is 
@@ -215,19 +221,18 @@ There are known issues on some scenario when dealing with more than one constrai
 
 In current developing version, this package depends on `rootSolve::multiroot`, which provides a lot of options. 
 
-Update
-------
- 1. After rootSolve was updated, `kmc` doesn't work on option: `em.boost=T` or `using.C=T`. The safe option to calculate the model is    
-  ```
-  kmc.solve( x,d,g,em.boost=F,using.num=T,using.Fortran=T,using.C=F,em.it=10)
-  ```
- This issue is related to initial value selection problem.    
- 2. The next version may remove the dependency on `rootSolve` and [solution](./src/common_kmc.h) is a trying which depends on [Eigen](http://eigen.tuxfamily.org/).    
- 3. [x] I will delete the dependency on `Rcpp` as it prevent the package works on Mac 10.6. (Fixed, no longer in plan)
- 4. introduce a C++ port for `emplik::el.cen.EM` and it has been approved in `emplik` package.    
- 5. A redesigned data structure with C++ implement: `nocopy_kmc_data` in [src](./src/kmc.cpp).
- 6. Multiple `omega.lambda` update strategies.
- 
+Changelog
+------------
+
+- [x] Bug fix:  rootSolve issue [LINK](https://github.com/yfyang86/kmc/issues/5)
+- [x] Buckley James: Add a `converge` tag to indicate the convergence.
+- [x] Add two uni-tests on `kmc.solve` and `kmc.bjtest`.
+
+TODO
+------------
+
+- When the initial `lambda` is not good, the optimization fails. One may notice there is a negative "LLR" consequently. This is due to the `root solve` process fails to identify the right branch to search `lambda` (p>1 dimensions). Currently, hidden functions `kmc_routine5_1d` and `kmc_routine5_nd` could test this.
+
 # Bug Report
 
 Please contact Yifan Yang (<mailto:yfyang.86@gmail.com>), or leave feed back on the Github page.

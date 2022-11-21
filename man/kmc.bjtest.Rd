@@ -56,6 +56,13 @@ The empirical likelihood is the likelihood of the error term when the coefficien
  \item{"-2LLR"}{
  	the -2 loglikelihood ratio; have approximate chisq distribution under null hypotheses
  }
+ \item{convergence}{
+  an indicator:
+  
+  0: fails to converge
+  
+  1: converged
+ }
  
 }
 \references{
@@ -80,8 +87,20 @@ A recursive formula for the Kaplan-Meier estimator with mean constraints and its
 	  	\code{\link{plotkmc2D}}, \code{\link[emplik]{bjtest}}.
 }
 \examples{
-x <- c( 1, 1.5, 2, 3, 4.2, 5.0, 6.1, 5.3, 4.5, 0.9, 2.1, 4.3) # positive time
-d <- c( 1,   1, 0, 1, 0, 1, 1, 1, 1, 0, 0,   1)               # status censored/uncensored
+library(survival)
+set.seed(1234)
+
+stanford5 <- stanford2[!is.na(stanford2$t5), ]
+
+y=log10(stanford5$time) + runif(dim(stanford5)[1])/1000
+d <- stanford5$status
+oy = order(y, -d)
+d=d[oy]
+y=y[oy]
+x=cbind(1, stanford5$age)[oy,]
+beta0 = c(3.2, -0.015)
+
+ss = kmc.bjtest(y, d, x=x, beta = beta0, init.st="naive")
 
 }
 

@@ -324,6 +324,7 @@ kmc.bjtest<-function(
     return(re);
   }
   
+
   u.lambda2<-function(re=el.cen.EM2.kmc(x=kmc.time,d=delta,fun= function(t, q) {
         t * q
     },mu=c(0,0),maxit=5,debug.kmc=F,q=A)){
@@ -339,16 +340,16 @@ kmc.bjtest<-function(
   }
   
   if (init.st=="naive"){ init.lam=c(0,0)}else{init.lam=u.lambda2()}
-  cat("init.lam:\t",init.lam,'\tLAM')
-  multiroot(kmc.comb123,start=init.lam,useFortran = T,rtol = 1e-9, atol = 1e-9, ctol = 1e-9)$root -> lambda
-  cat(lambda,'\n')
+  # cat("init.lam:\t",init.lam,'\tLAM')
+  multiroot(kmc.comb123,start=init.lam, useFortran = T, rtol = 1e-9, atol = 1e-9, ctol = 1e-9)$root -> lambda
+  # cat(lambda,'\n')
   omega.lambda(kmc.time=esort,delta=delta,lambda=lambda,g=NULL,gt.mat=gt.matrix) -> result; ## set lambda=0, it compute KM-est  
   temp2<-kmc.el(delta,result$omega,result$S)
   pnew <- result$omega
   logel1 <- temp0$logel
   logel2 <- temp2
   list(prob = pnew, logel = logel1, logel2 = logel2, `-2LLR` = 2 * 
-         (logel1 - logel2))
+         (logel1 - logel2), convergence = c(0, 1)[(abs(sum(pnew) -1 ) < 0.001)+ 0])
 }
 
 
