@@ -2,13 +2,13 @@ Package: kmc
 Type: Package
 Title: Kaplan-Meier Estimator with Constraints for Right Censored Data
         -- a Recursive Computational Algorithm
-Version: 0.4-0
+Version: 0.4-1
 Date: 2022-11-21
 Authors@R: c(person("Yifan", "Yang",  role = c("aut", "cre","cph"),
                    email = "yfyang.86@hotmail.com"),
             person("Mai", "Zhou", role = "aut"))
 Maintainer: Yifan Yang <yfyang.86@hotmail.com>
-Description: Given constraints for right censored data, we use a recursive computational algorithm to calculate the the "constrained" Kaplan-Meier estimator. The constraint is assumed given in linear estimating equations or mean functions. We also illustrate how this leads to the empirical likelihood ratio test with right censored data and accelerated failure time model with given coefficients. EM algorithm from emplik package is used to get the initial value. The properties and performance of the EM algorithm is discussed in Mai Zhou and Yifan Yang (2015)<doi: 10.1007/s00180-015-0567-9> and Mai Zhou and Yifan Yang (2017) <10.1002/wics.1400>. More applications could be found in Mai Zhou (2015) <doi: 10.1201/b18598>.
+Description: Given constraints for right censored data, we use a recursive computational algorithm to calculate the the "constrained" Kaplan-Meier estimator. The constraint is assumed given in linear estimating equations or mean functions. We also illustrate how this leads to the empirical likelihood ratio test with right censored data and accelerated failure time model with given coefficients. EM algorithm from emplik package is used to get the initial value. The properties and performance of the EM algorithm is discussed in Mai Zhou and Yifan Yang (2015)<doi: 10.1007/s00180-015-0567-9> and Mai Zhou and Yifan Yang (2017) <doi: 10.1002/wics.1400>. More applications could be found in Mai Zhou (2015) <doi: 10.1201/b18598>.
 URL: http://github.com/yfyang86/kmc
 License: LGPL-3
 Depends: R (>= 2.13.1), compiler, rootSolve, emplik
