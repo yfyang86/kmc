@@ -1,22 +1,30 @@
 kmc.el<-function(delta,omega,S){
   n<-length(S)
-    sum(llog(omega[delta==1],1/n^2/100))+sum(llog(S[delta==0],1/n^2/100))
+  sum(llog(omega[delta==1],1/n^2/100))+sum(llog(S[delta==0],1/n^2/100))
   omega[delta==1] -> val1
   S[delta==0]     -> val2
   eps=1e-7
-    sum(llog(val1,.001/n^2)[val1>eps])+sum(llog(val2,.001/n^2)[val2>eps])
+  sum(llog(val1,.001/n^2)[val1>eps])+sum(llog(val2,.001/n^2)[val2>eps])
 }
 
+
+#' The `kmc.clean` function clean the (kmc.time, delta) for 
+#' the randomized censored data. 
+#' 1. No tie: the kmc.time and delta are re-arranged in an increasing order.
+#' 2. Tie: for the time points contain ties, 
+#'            e.g. (T_{i_s}, d_{i_s}), i_s \in S \forall j \in S, T_{j} \equiv T
+#'            we re-arranged the data in a manner that those with d=1 are ordered 
+#'            ahead of those with d=0. As d=0 indicates the data point is right 
+#'            censored, such procedure is trivial. 
+#' @param kmc.time: time 
+#' @param delta {0,1} indicator of observer/censored
+#' @example 
+#' 
 kmc.clean <- function(kmc.time,delta){
-  #TASK:
-  #1 sort T
-  #2 the first is uncen!
-  
   n <- length(kmc.time)
   dataOrder <- order(kmc.time, -delta)
   kmc.time <- kmc.time[dataOrder]
-  delta <- delta[dataOrder]             ### changed 10/2018
-
+  delta <- delta[dataOrder] 
   FirstUnCenLocation<-which(delta==1)[1];
   if (FirstUnCenLocation==n) {stop('Only one uncensored point.');}
   if (FirstUnCenLocation!=1){
@@ -24,11 +32,7 @@ kmc.clean <- function(kmc.time,delta){
     kmc.time=kmc.time[FirstUnCenLocation:n];
   }
   delta[length(kmc.time)]=1;
-  #U=kmc_find0loc(delta);
-#  cat("len: ",U);
-#if (U==0) stop("Not enough event points!");
-#  return (list(kmc.time=kmc.time[1:U],delta=delta[1:U]));
- return (list(kmc.time=kmc.time,delta=delta));
+  return (list(kmc.time=kmc.time,delta=delta));
 }
 
 
@@ -147,10 +151,17 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
     if ('nr.it'%in%names(control)){ nr.it=control$nr.it; if (nr.it<10) nr.it=10}else{nr.it=20} # NR iteration
     if ('nr.c'%in%names(control)){nr.c=control$nr.c;if (nr.c>1) {warning("In N-R iteration, C should be between 0 and 1");nr.c=1}  }else{nr.c=1} #NR scaler
     if ('em.it'%in%names(control)){ em.it=control$em.it; if (em.it>10) em.it=10}else{em.it=3} # EM iteration
-    
+    experimental = F; if ('experimental' %in% names(control)){experimental=T}
+    default.init = rep(0., length(g)); if ('default.init' %in% names(control)){default.init=control[["default.init"]]}
+
     ###### end of checking PHASE 1  ######
+    x_eps_ <- (1:length(x))*1e-12
+    x <- x + x_eps_
+    
     kmc.clean(kmc.time=x,delta=d)->re
     kmc.time=re$kmc.time;
+    ### override---random break ties
+
     delta=re$delta; ## use global now, mod latter
     p=length(g)
     if (tmp.tag)delta[1:p]=1## if two constraints
@@ -192,7 +203,31 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
       if (i==it){ cat('\nMay not converge.\n')}else cat('\nConverged!\n')
       re
     }
-    
+
+  if (experimental){
+
+    fun.C <- function(lam){
+      w = kmc_routine5(delta, lam, gt.mat)
+      return((gt.mat%*%w));
+    }
+
+    if (p==1){
+    fun.C2 <- function(lam){
+          w =  kmc_routine5(delta, lam, gt.mat)
+          return(1-sum((w)));
+        }
+        Cmean = multiroot(start = -2 + default.init, f = fun.C2 )
+    }else{
+      Cmean = NULL
+    }
+      
+
+    Cmu = multiroot(start = default.init, f = fun.C )
+
+
+    return(list(Cmu, Cmean));
+
+  } 
   if (em.boost){
     if (length(g)==1){
         u.lambda1<-function(re=el.cen.EM.kmc(x=kmc.time,d=delta,fun=g[[1]],mu=0,maxit=em.it,debug.kmc=F)){
@@ -234,8 +269,7 @@ kmc.solve<-function(x,d,g,em.boost=T,using.num=T,using.Fortran=T,using.C=F,tmp.t
         loglik.null<- kmc.el(delta,re0$omega,re0$S)
  	}
     result<-tryCatch(
-        result<-omega.lambda(kmc.time,delta,lambda,g,gt.mat=gt.mat)
-        ,
+        result<-omega.lambda(kmc.time, delta, lambda, g, gt.mat=gt.mat),
         error=function(cond) {
             message(cond)
             return(list(S=NA,omega=NA,gt=NA))
@@ -264,6 +298,8 @@ kmc.bjtest<-function(
   if (length(beta) != xdim[2]) 
     stop("check dim of x and beta")
   e <- y - as.vector(x %*% beta)
+  e_eps_ <- (1:length(e))*1e-12
+  e <- e + e_eps_
   ordere <- order(e, -d)
   esort <- e[ordere]
   dsort <- d[ordere]
@@ -288,6 +324,7 @@ kmc.bjtest<-function(
     return(re);
   }
   
+
   u.lambda2<-function(re=el.cen.EM2.kmc(x=kmc.time,d=delta,fun= function(t, q) {
         t * q
     },mu=c(0,0),maxit=5,debug.kmc=F,q=A)){
@@ -303,16 +340,16 @@ kmc.bjtest<-function(
   }
   
   if (init.st=="naive"){ init.lam=c(0,0)}else{init.lam=u.lambda2()}
-  cat("init.lam:\t",init.lam,'\tLAM')
-  multiroot(kmc.comb123,start=init.lam,useFortran = T,rtol = 1e-9, atol = 1e-9, ctol = 1e-9)$root -> lambda
-  cat(lambda,'\n')
+  # cat("init.lam:\t",init.lam,'\tLAM')
+  multiroot(kmc.comb123,start=init.lam, useFortran = T, rtol = 1e-9, atol = 1e-9, ctol = 1e-9)$root -> lambda
+  # cat(lambda,'\n')
   omega.lambda(kmc.time=esort,delta=delta,lambda=lambda,g=NULL,gt.mat=gt.matrix) -> result; ## set lambda=0, it compute KM-est  
   temp2<-kmc.el(delta,result$omega,result$S)
   pnew <- result$omega
   logel1 <- temp0$logel
   logel2 <- temp2
   list(prob = pnew, logel = logel1, logel2 = logel2, `-2LLR` = 2 * 
-         (logel1 - logel2))
+         (logel1 - logel2), convergence = c(0, 1)[(abs(sum(pnew) -1 ) < 0.001)+ 0])
 }
 
 

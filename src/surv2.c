@@ -174,8 +174,6 @@ double lam0=0.,lo,up;
 double toldouble[1]={1e-9};/*tolerance used in root searching*/
 int MAXITER[1]={1000};
 int i=0;
-double re=0.;
-
 
 for (i=0;i<Lx;i++){allw+=wt[i];}
 BU = fabs(x[0]-mu);
@@ -201,16 +199,14 @@ if (lamfunC(0,x,mu,wt,allw,Lx) == 0){
            lo  = lo - BU;
       }
      }
- lam0 = R_zeroin2surv(lo,up,toldouble,MAXITER,x,mu,wt,allw,Lx);
+ lam0 = R_zeroin2surv(lo, up, toldouble, MAXITER, x, mu, wt, allw, Lx);
 }
 
 for (i=0;i<Lx;i++){ pi[i] = wt[i]/(allw + lam0*(x[i]-mu));}
 lamre[0]=lam0;
 
 }
-/*
 
-*/
 void locLastZero(int *target,int* l,int *re){
     int nn = 0[l];
     int i=1;

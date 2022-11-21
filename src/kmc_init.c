@@ -10,6 +10,7 @@
 /* .C calls */
 extern void locLastZero(void *, void *, void *);
 extern void nocopy_kmc_data(void *, void *, void *, void *, void *);
+extern void kmc_native(void *, void *, void *, void *);
 
 /* .Call calls */
 extern SEXP kmcRCPP_KMCDATA(SEXP, SEXP, SEXP, SEXP);
@@ -19,7 +20,8 @@ extern SEXP kmcomegalambda(SEXP, SEXP, SEXP, SEXP);
 static const R_CMethodDef CEntries[] = {
     {"locLastZero",     (DL_FUNC) &locLastZero,     3},
     {"nocopy_kmc_data", (DL_FUNC) &nocopy_kmc_data, 5},
-    {NULL, NULL, 0}
+    {"kmc_native",      (DL_FUNC) &kmc_native,      4},
+    {NULL,              NULL,                       0}
 };
 
 static const R_CallMethodDef CallEntries[] = {
