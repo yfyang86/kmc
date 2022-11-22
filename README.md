@@ -1,6 +1,12 @@
 KMC
 ===
 
+| Desc | logs |
+|:-----|:-----|
+|maintainer:  | Yifan Yang <mailto: yfyang.86@hotmail.com> |
+| Version | 0.4-2 |
+| Date | 2022-11-21 |
+
 The Kaplan-Meier estimator is very popular in analysis of survival data. However, it is not easy to compute the *constrained* Kaplan-Meier. Current computational method uses the expectation maximization (EM) algorithm to achieve this, but can be slow at many situations. In this package we give a recursive computational algorithm for the *constrained* Kaplan-Meier estimator. The constraint is assumed given in **linear** estimating equations or **mean functions**. 
 
 ![MeanPlot](./data/KMplot.png)
@@ -235,4 +241,4 @@ TODO
 
 # Bug Report
 
-Please contact Yifan Yang (<mailto:yfyang.86@gmail.com>), or leave feed back on the Github page.
+Please contact Yifan Yang (<mailto:yfyang.86@hotmail.com>), or leave feed back on the Github page.
