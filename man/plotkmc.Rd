@@ -39,7 +39,7 @@ Yifan Yang(yfyang.86@hotmail.com)
 \examples{
 
 x <- c( 1, 1.5, 2, 3, 4.2, 5.0, 6.1, 5.3, 4.5, 0.9, 2.1, 4.3) 
-d <- c( 1,   1, 0, 1, 0, 1, 1, 1, 1, 0, 0,   1) 
+d <- c( 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1) 
 
 f<-function( x) { x-3.7} 
 
@@ -60,12 +60,14 @@ kmc.solve( x,d,g) ->re0;
 #volcano3d$x <- ZZ$X[volcano3d$x];
 #volcano3d$y <- ZZ$Y[volcano3d$y];
 
+#### Plot: use ggplot2 ####
 #library(ggplot2)
-#v <- ggplot(volcano3d, aes(x, y, z=z));
-#v +geom_tile(aes(fill = z)) + stat_contour()+scale_fill_gradientn("Custom 
-#Colours",colours=grey.colors(10));
-#c("lightblue","blue","green","yellow","orange","red")
-#X11();
+# v <- ggplot(volcano3d, aes(x, y, z=z));
+# v + geom_tile(aes(fill = z)) + 
+#   stat_contour()+
+#   scale_fill_gradientn("Custom Colours",colours=grey.colors(10));
+
+#### Plot: use qplot ####
 #qplot(x, y, z = z, data = volcano3d, stat = "contour", geom = "path")
 }
 

@@ -88,19 +88,14 @@ A recursive formula for the Kaplan-Meier estimator with mean constraints and its
 }
 \examples{
 library(survival)
-set.seed(1234)
-
 stanford5 <- stanford2[!is.na(stanford2$t5), ]
-
-y=log10(stanford5$time) + runif(dim(stanford5)[1])/1000
+y <- log10(stanford5$time)
 d <- stanford5$status
-oy = order(y, -d)
-d=d[oy]
-y=y[oy]
-x=cbind(1, stanford5$age)[oy,]
-beta0 = c(3.2, -0.015)
-
-ss = kmc.bjtest(y, d, x=x, beta = beta0, init.st="naive")
-
+oy <- order(y, -d)
+d <- d[oy]
+y <- y[oy]
+x <- cbind(1, stanford5$age)[oy,]
+beta0  <-  c(3.2, -0.015)
+ss  <-  kmc.bjtest(y, d, x=x, beta=beta0, init.st="naive")
 }
 
