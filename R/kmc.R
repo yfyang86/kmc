@@ -448,6 +448,8 @@ kmc.solvelite <- function(
   )
   loglik.ha <- kmc.el(delta, re1$omega, re1$S)
 
+  convergence <- 1 - (sum(re1$omega < 0.) > 0.)
+
   re.tmp <- list(
     loglik.null = loglik.null,
     loglik.h0 = loglik.ha,
@@ -457,7 +459,8 @@ kmc.solvelite <- function(
     status = d,
     phat = re1$omega,
     pvalue = 1 - pchisq(-2 * (loglik.ha - loglik.null), df = length(g)),
-    lambda = lambda
+    lambda = lambda,
+    convergence = convergence
   )
   class(re.tmp) <- "kmcS3"
   return(re.tmp)

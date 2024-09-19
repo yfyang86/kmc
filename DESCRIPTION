@@ -3,7 +3,7 @@ Type: Package
 Title: Kaplan-Meier Estimator with Constraints for Right Censored Data
         -- a Recursive Computational Algorithm
 Version: 0.4-3
-Date: 2022-11-21
+Date: 2024-09-19
 Authors@R: c(person("Yifan", "Yang",  role = c("aut", "cre","cph"),
                    email = "yfyang.86@hotmail.com"),
             person("Mai", "Zhou", role = "aut"))

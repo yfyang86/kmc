@@ -79,7 +79,53 @@ lamda(s):	 -0.4148702 -0.1546575
 Est  -17.5198            -17.8345              0.6293    0.7301
 ---------------------------------------------------------------------------------
 ```
+ 
+Lite version
+--------------
 
+To make the package more user-friendly, we provide a lite version of the `kmc.solve` function. It 
+
+- ignores experimental options
+- always uses `0` vector as the initial value
+- use a faked randomize method to tackle the tie problem
+
+Here is an example:
+
+```r
+library(survival)
+stanford5 <- stanford2[!is.na(stanford2$t5), ]
+y=log10(stanford5$time)
+d <- stanford5$status
+g <- list(f = function(x) {(x-2.4 < 0.) - 0.5} )  # \sum I(x_i<2.4) wi = 0.5)
+kmc.solvelite(y, d, g)
+##################################
+## Example (Cont'd): -2LLR Curve
+##################################
+iters = 100
+scale = 8.
+starter = 2.7
+result = rep(0., 20)
+result2 = rep(0., 20)
+observe_range = starter + (1:iters)/(iters * scale)
+for (i in 1:iters){
+        g <- list(f = function(x) {(x- (starter + i/(iters * scale)) < 0.) - 0.5})
+        result[i] = kmc.solve(y, d, g, using.C=TRUE)$`-2LLR`
+		result2[i] = kmc.solvelite(y, d, g)$`-2LLR`
+}
+plot(x = observe_range, result, xlab = 'time', ylab = '-2LLR', type = 'b')
+rect(2.7, 0, 2.735, 1.25, col = rgb(128/256, 0, 0, 0.1), border = NA)
+rect(2.735, 0, 2.825, 1.25, col = rgb(0, 128/256, 0, 0.1), border = NA)
+points(x = observe_range, result2, xlab = 'time', ylab = '-2LLR', type = 'b', col = 'red')
+```
+
+This clearly shows the impact of the initial value on the convergence of the algorithm. 
+
+![img](./data/comparison.png)
+
+- Black: `kmc.solve` with EM algorithm iter = 5 as the initial lambda value.
+- Red: `kmc.solvelite` with `0` as the initial lambda  value.
+
+The red area is the region where the `kmc.solvelite` fails to converge, i.e. the initial value `0` fails.
 
 Contour Plot
 --------------
