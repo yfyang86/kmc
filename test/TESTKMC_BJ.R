@@ -48,11 +48,12 @@ x=cbind(1,stanford5$age)[oy,]
 ZZ=matrix(0,2*LL+1,2*LL+1)
 
 library(kmc)
+
 tic=0
 for(jj in 1:(2*LL+1)){
 for(ii in 1:(2*LL+1)){
   beta=c(beta.0[ii],beta.1[jj])
-  ZZ[jj,ii]=kmc.bjtest(y,d,x=x,beta=beta,init.st="naive")$"-2LLR"
+  ZZ[jj,ii]=kmc.bjtest(y, d, x, beta, init.st="naive")$"-2LLR"
 }
 }
 ZZ2<-ZZ
