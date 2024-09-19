@@ -4,8 +4,8 @@ KMC
 | Desc | logs |
 |:-----|:-----|
 |maintainer:  | Yifan Yang <mailto: yfyang.86@hotmail.com> |
-| Version | 0.4-2 |
-| Date | 2022-11-21 |
+| Version | 0.4-3 |
+| Date | 2024-09-19 |
 
 The Kaplan-Meier estimator is very popular in analysis of survival data. However, it is not easy to compute the *constrained* Kaplan-Meier. Current computational method uses the expectation maximization (EM) algorithm to achieve this, but can be slow at many situations. In this package we give a recursive computational algorithm for the *constrained* Kaplan-Meier estimator. The constraint is assumed given in **linear** estimating equations or **mean functions**. 
 
@@ -80,7 +80,7 @@ Est  -17.5198            -17.8345              0.6293    0.7301
 ---------------------------------------------------------------------------------
 ```
  
-Lite version
+Lite version to study Initial values
 --------------
 
 To make the package more user-friendly, we provide a lite version of the `kmc.solve` function. It 
@@ -89,7 +89,7 @@ To make the package more user-friendly, we provide a lite version of the `kmc.so
 - always uses `0` vector as the initial value
 - use a faked randomize method to tackle the tie problem
 
-Here is an example:
+Here is an example, we use the Stanford heart transplant data to illustrate the impact of the initial value on the convergence of the algorithm. The constraint is $E[I (X)<2.4] = 0.5$. It should behaves like a step function rather than smooth functions.
 
 ```r
 library(survival)
@@ -126,6 +126,17 @@ This clearly shows the impact of the initial value on the convergence of the alg
 - Red: `kmc.solvelite` with `0` as the initial lambda  value.
 
 The red area is the region where the `kmc.solvelite` fails to converge, i.e. the initial value `0` fails.
+
+There are known issues on some scenario when dealing with more than one constraint. According to our simulation, automatic tuning strategy fails under some constraints. One can always use proper initial values like:
+
+- [x] Always uses the `kmc.solvelite` function to get a proper initial value;
+- [x] Uses the `kmc.solve` function with few (saying, 5 would be enough) EM algorithm steps to get a proper initial value;
+- [ ] Randomizes initial values around 0 and optimize it continuously. 
+
+Although KMC is much faster than EM among many others, we should point out that the initial value of `lambda` is hightly unsteady, and the convergence of the algorithm is highly dependent on the initial value.
+
+In current developing version, this package depends on `rootSolve::multiroot`. In `src/surv2.c::R_zeroin2surv()`, we provide a Newton method 1D version to solve the root. It is not integrated in the package yet. 
+
 
 Contour Plot
 --------------
@@ -267,11 +278,7 @@ Another one concentrates on two hypothesizes on survival function are considered
 Here, $30\times 30$ combinations of $(\mu,\nu)$ near NPMLE($0.5569$,$3.061$), i.e. value plugged in with Kaplan Meier estimation, were used to construct a contour plot of the constrained log empirical likelihood. On the same computer, the program finished in 17 seconds.  EM based method could also reproduce the same plot, but the time spend is not evaluated as some values fails to converge within 2 minutes.
 
 
-Initial value
--------------
-There are known issues on some scenario when dealing with more than one constraint. According to our simulation, automatic tuning strategy fails under some constraints. One can always use proper initial values, and I will add additional strategies in future work.
 
-In current developing version, this package depends on `rootSolve::multiroot`, which provides a lot of options. 
 
 Changelog
 ------------
