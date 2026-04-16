@@ -4,18 +4,17 @@
 #' @param omega the weight for the uncensored data
 #' @param S the weight for the censored data
 kmc.el <- function(delta, omega, S) {
-  llog <- function (z, eps) {
-        ans <- z
-        avoidNA <- !is.na(z)
-        lo <- (z < eps) & avoidNA
-        ans[lo] <- log(eps) - 1.5 + 2 * z[lo]/eps - 0.5 * (z[lo]/eps)^2
-        ans[!lo] <- log(z[!lo])
-        ans
-    }
+  llog <- function(z, eps) {
+    ans <- z
+    avoidNA <- !is.na(z)
+    lo <- (z < eps) & avoidNA
+    ans[lo] <- log(eps) - 1.5 + 2 * z[lo] / eps - 0.5 * (z[lo] / eps)^2
+    ans[!lo] <- log(z[!lo])
+    ans
+  }
   n <- length(S)
-  sum(llog(omega[delta == 1], 1 / n^2 / 100)) + sum(llog(S[delta == 0], 1 / n^2 / 100))
-  omega[delta == 1] -> val1
-  S[delta == 0] -> val2
+  val1 <- omega[delta == 1]
+  val2 <- S[delta == 0]
   eps <- 1e-7
   sum(llog(val1, .001 / n^2)[val1 > eps]) + sum(llog(val2, .001 / n^2)[val2 > eps])
 }
@@ -60,49 +59,28 @@ kmc.clean <- function(kmc.time, delta, tie = 'fake') {
 
 
 omega.lambda <- cmpfun(function(kmc.time, delta, lambda, g, gt.mat) {
-  # iter
-  p <- length(g) # the number of constraint
   n <- length(kmc.time)
-  if (p == 1) {
-    ### 1 constraint: offered by Dr Zhou.
-    n <- length(delta)
-    delta[n] <- 1
-    u.omega <- rep(0, n) ##### all be zero to begin
-    u.omega[1] <- 1 / (n - lambda * gt.mat[1]) ## first entry
-    S <- rep(1.0, n)
-    S.cen <- 0
-    for (k in 2:n) {
-      if (delta[k] == 0) {
-        S[k] <- S[k - 1] - u.omega[k - 1]
-        S.cen <- S.cen + 1 / S[k]
-      } else {
-        u.omega[k] <- 1 / (n - lambda * gt.mat[k] - S.cen)
-        S[k] <- S[k - 1] - u.omega[k - 1]
-      }
+  delta[n] <- 1
+
+  # Compute lambda' * g(t_k) for each observation k
+  # Works for both scalar lambda (p=1) and vector lambda (p>1)
+  lg <- colSums(lambda * gt.mat)
+
+  u.omega <- numeric(n)
+  S <- rep(1.0, n)
+  S.cen <- 0
+
+  u.omega[1] <- 1 / (n - lg[1])
+  for (k in 2:n) {
+    S[k] <- S[k - 1] - u.omega[k - 1]
+    if (delta[k] == 0) {
+      S.cen <- S.cen + 1 / S[k]
+    } else {
+      u.omega[k] <- 1 / (n - lg[k] - S.cen)
     }
-    # return(list(S=S,omega=u.omega, mea= sum(gt*u.omega)))
-    return(list(S = S, omega = u.omega, gt = gt.mat))
-  } else {
-    uncen.loc <- which(delta == 1)
-    cen.loc <- which(delta == 0)
-    delta[n] <- 1
-    #########################################
-    u.omega <- numeric(n)
-    u.omega[1] <- 1 / (n - sum(lambda * gt.mat[, 1]))
-    for (k in 2:n) {
-      if (delta[k] == 1) {
-        S <- 1 - cumsum(u.omega) # need to update every kmc.time(add in one entry each kmc.time)
-        SCenLoc <- cen.loc[cen.loc %in% (1:(k - 1))]
-        S.cen <- 0
-        if (length(SCenLoc) != 0) {
-          S.cen <- sum(1 / S[SCenLoc])
-        }
-        u.omega[k] <- 1 / (n - sum(lambda * gt.mat[, k]) - S.cen)
-        # cat(':::',sum(omega),'\n')
-      }
-    }
-    return(list(S = S, omega = u.omega, gt = gt.mat))
   }
+
+  return(list(S = S, omega = u.omega, gt = gt.mat))
 })
 
 kmc.data <- cmpfun(function(kmc.time, delta, lambda, g, gt.mat, using.C = F) {
@@ -165,178 +143,180 @@ kmc.data12 <- function(kmc.time, delta, lambda, g, gt.mat) {
 
 
 
-kmc.solve <- function(x, d, g, em.boost = T, using.num = T, using.Fortran = T, using.C = F, tmp.tag = T, rtol = 1E-9, control = list(nr.it = 20, nr.c = 1, em.it = 3), ...) {
-  # n=length(x)
-  ###### checking PHASE 1         ######
+# Internal: validate status vector and constraint count
+.validate_kmc_inputs <- function(d, g) {
   if (length(unique(d)) != 1) {
     if (!setequal(unique(d), c(0, 1))) stop("Status must be 0/1")
   } else {
     if (d[1] != 1) stop("Status must be 0/1")
-  } # check d = 0/1 or all 1's
-  if (sum(d) < length(g)) stop("Number of observation MUST be greater than numbers of constraints")
-  if ("nr.it" %in% names(control)) {
-    nr.it <- control$nr.it
-    if (nr.it < 10) nr.it <- 10
-  } else {
-    nr.it <- 20
-  } # NR iteration
-  if ("nr.c" %in% names(control)) {
-    nr.c <- control$nr.c
-    if (nr.c > 1) {
+  }
+  if (sum(d) < length(g)) {
+    stop("Number of observation MUST be greater than numbers of constraints")
+  }
+}
+
+# Internal: parse and validate control parameters
+.parse_kmc_control <- function(control, p) {
+  nr.it <- if ("nr.it" %in% names(control)) max(control$nr.it, 10) else 20
+  nr.c <- if ("nr.c" %in% names(control)) {
+    if (control$nr.c > 1) {
       warning("In N-R iteration, C should be between 0 and 1")
-      nr.c <- 1
+      1
+    } else {
+      control$nr.c
     }
   } else {
-    nr.c <- 1
-  } # NR scaler
-  if ("em.it" %in% names(control)) {
-    em.it <- control$em.it
-    if (em.it > 10) em.it <- 10
+    1
+  }
+  em.it <- if ("em.it" %in% names(control)) min(control$em.it, 10) else 3
+  experimental <- "experimental" %in% names(control)
+  default.init <- if ("default.init" %in% names(control)) {
+    control[["default.init"]]
   } else {
-    em.it <- 3
-  } # EM iteration
-  experimental <- F
-  if ("experimental" %in% names(control)) {
-    experimental <- T
+    rep(0., p)
   }
-  default.init <- rep(0., length(g))
-  if ("default.init" %in% names(control)) {
-    default.init <- control[["default.init"]]
-  }
+  list(nr.it = nr.it, nr.c = nr.c, em.it = em.it,
+       experimental = experimental, default.init = default.init)
+}
 
-  ###### end of checking PHASE 1  ######
-  x_eps_ <- (1:length(x)) * 1e-12
-  x <- x + x_eps_
+kmc.solve <- function(x, d, g, em.boost = T, using.num = T, using.Fortran = T, using.C = F, tmp.tag = T, rtol = 1E-9, control = list(nr.it = 20, nr.c = 1, em.it = 3), ...) {
+  .validate_kmc_inputs(d, g)
+  ctrl <- .parse_kmc_control(control, length(g))
+  nr.it <- ctrl$nr.it
+  nr.c <- ctrl$nr.c
+  em.it <- ctrl$em.it
+  experimental <- ctrl$experimental
+  default.init <- ctrl$default.init
 
-  kmc.clean(kmc.time = x, delta = d) -> re
+  # Data preprocessing: sort, break ties, ensure proper censoring structure
+  re <- kmc.clean(kmc.time = x, delta = d)
   kmc.time <- re$kmc.time
-  ### override---random break ties
+  delta <- re$delta
 
-  delta <- re$delta ## use global now, mod latter
   p <- length(g)
-  if (tmp.tag) delta[1:p] <- 1 ## if two constraints
+  if (tmp.tag) delta[1:p] <- 1
   n <- length(delta)
   gt.mat <- matrix(0, p, n)
   for (i in 1:p) gt.mat[i, ] <- g[[i]](kmc.time)
 
-  ###### TODO: checking PHASE 2        ######
-  ##    Is the feasible region = NULL?
-
-  kmc.comb <- function(x) {
-    # OLD kmc.data(kmc.time,delta,lambda=x,g, gt.mat= gt.mat,using.C=using.C)-> re;
-    kmc.data(kmc.time, delta, lambda = x, g, gt.mat = gt.mat, using.C = using.C) -> re
-    re$chk
-  }
-
-  kmc.comb12 <- Vectorize(function(x) {
-    kmc.data12(kmc.time, delta, lambda = x, g, gt.mat = gt.mat) -> re
-    list(x = re$chk, dev = re$domega)
-  })
-
+  # Objective function for root finding (C implementation)
   kmc.comb123 <- function(x) {
-    kmc_routine4(lambda = x, delta = delta, gtmat = gt.mat) -> re
-    return(re)
+    kmc_routine4(lambda = x, delta = delta, gtmat = gt.mat)
   }
 
-  multiroot.nr <- function(f_, xinit, it = nr.it, C = nr.c, trace = FALSE, tol = 1E-9) {
-    if (C * tol > 1) C <- ceiling(1 / tol / 10)
-    re <- xinit
-    if (trace) cat("\nx\tf(x)\tdf(x)")
-    for (i in 1:it) {
-      f_(re) -> tmp
-      if (abs(tmp[[1]]) < tol) break
-      re <- re - tmp[[1]] / tmp[[2]] * C
-      if (trace) {
-        cat("\n", re, "\t", tmp[[1]], "\t", tmp[[2]])
-      }
-    }
-    if (i == it) {
-      cat("\nMay not converge.\n")
-    } else {
-      cat("\nConverged!\n")
-    }
-    re
-  }
-
+  # Experimental mode (early return)
   if (experimental) {
     fun.C <- function(lam) {
       w <- kmc_routine5(delta, lam, gt.mat)
-      return((gt.mat %*% w))
+      return(gt.mat %*% w)
     }
-
+    Cmean <- NULL
     if (p == 1) {
       fun.C2 <- function(lam) {
         w <- kmc_routine5(delta, lam, gt.mat)
-        return(1 - sum((w)))
+        return(1 - sum(w))
       }
       Cmean <- multiroot(start = -2 + default.init, f = fun.C2)
-    } else {
-      Cmean <- NULL
     }
-
-
     Cmu <- multiroot(start = default.init, f = fun.C)
-
-
     return(list(Cmu, Cmean))
   }
+
+  # Compute initial lambda via EM boost or zero initialization
   if (em.boost) {
-    if (length(g) == 1) {
-      u.lambda1 <- function(re = el.cen.EM.kmc(x = kmc.time, d = delta, fun = g[[1]], mu = 0, maxit = em.it, debug.kmc = F)) {
-        (n - 1 / re$prob[1]) / g[[1]](re$times[1])
+    if (p == 1) {
+      em_re <- el.cen.EM.kmc(x = kmc.time, d = delta, fun = g[[1]],
+                              mu = 0, maxit = em.it, debug.kmc = F)
+      init.lam <- (n - 1 / em_re$prob[1]) / g[[1]](em_re$times[1])
+    } else if (p == 2) {
+      em_re <- el.cen.EM2.kmc(x = kmc.time, d = delta,
+                               fun = function(x) cbind(g[[1]](x), g[[2]](x)),
+                               mu = c(0, 0), maxit = 5, debug.kmc = F)
+      del.loc <- which(delta == 1)[1:2]
+      tmp <- c(0, 0)
+      if (del.loc[2] != 2) {
+        tmp[2] <- sum(as.numeric(delta[1:(del.loc[2] - 1)] == 0) /
+                        rep(1 - em_re$prob[1], 2))
       }
-      init.lam <- u.lambda1()
+      UD <- cbind(g[[1]](em_re$times[1:2]), g[[2]](em_re$times[1:2]))
+      init.lam <- as.vector(solve(UD) %*% (n - 1 / em_re$prob[del.loc] - tmp))
     } else {
-      if (length(g) == 2) {
-        u.lambda2 <- function(re = el.cen.EM2.kmc(x = kmc.time, d = delta, fun = function(x) {
-                                cbind(g[[1]](x), g[[2]](x))
-                              }, mu = c(0, 0), maxit = 5, debug.kmc = F)) {
-          del.loc <- which(delta == 1)[1:2]
-          tmp <- c(0, 0)
-          if (del.loc[2] != 2) tmp[2] <- sum(as.numeric(delta[1:(del.loc[2] - 1)] == 0) / (rep(1 - re$prob[1], 2)))
-          UD <- cbind(g[[1]](re$times[1:2]), g[[2]](re$times[1:2]))
-          uu.lambda <- as.vector(
-            solve(UD) %*% (n - 1 / re$prob[del.loc] - tmp)
-          )
-          # debug oupur lambda: print(uu.lambda)
-          uu.lambda
-        }
-        init.lam <- u.lambda2()
-      } else {
-        u.lambda3 <- function() {
-          return(0)
-        }
-        init.lam <- u.lambda3()
-      }
+      init.lam <- rep(0, p)
     }
   } else {
-    init.lam <- rep(0, length(g))
+    init.lam <- rep(0, p)
   }
 
-  if (using.num || (length(g) != 1)) {
-    multiroot(kmc.comb123, start = init.lam, ctol = rtol, useFortran = using.Fortran)$root -> lambda
+  # Root finding for lambda
+  if (using.num || (p != 1)) {
+    lambda <- multiroot(kmc.comb123, start = init.lam,
+                        ctol = rtol, useFortran = using.Fortran)$root
   } else {
-    multiroot.nr(f_ = kmc.comb12, xinit = init.lam, it = 15, C = 1, FALSE, tol = rtol) -> lambda
+    # Custom Newton-Raphson for single-constraint analytic derivative
+    kmc.comb12 <- Vectorize(function(x) {
+      re <- kmc.data12(kmc.time, delta, lambda = x, g, gt.mat = gt.mat)
+      list(x = re$chk, dev = re$domega)
+    })
+    multiroot.nr <- function(f_, xinit, it = nr.it, C = nr.c, tol = 1E-9) {
+      if (C * tol > 1) C <- ceiling(1 / tol / 10)
+      re <- xinit
+      for (i in 1:it) {
+        tmp <- f_(re)
+        if (abs(tmp[[1]]) < tol) break
+        re <- re - tmp[[1]] / tmp[[2]] * C
+      }
+      if (i == it) message("May not converge.")
+      re
+    }
+    lambda <- multiroot.nr(f_ = kmc.comb12, xinit = init.lam, it = 15, C = 1, tol = rtol)
   }
-  if (em.boost & (length(g) == 1)) {
+
+  # Null hypothesis log-likelihood (unconstrained KM)
+  if (em.boost & (p == 1)) {
     loglik.null <- WKM(kmc.time, delta)$logel
   } else {
-    omega.lambda(kmc.time = kmc.time, delta = delta, lambda = 0, g = g, gt.mat = gt.mat) -> re0 ## set lambda=0, it compute KM-est
+    re0 <- omega.lambda(kmc.time = kmc.time, delta = delta,
+                        lambda = 0, g = g, gt.mat = gt.mat)
     loglik.null <- kmc.el(delta, re0$omega, re0$S)
   }
+
+  # Alternative hypothesis log-likelihood
   result <- tryCatch(
-    result <- omega.lambda(kmc.time, delta, lambda, g, gt.mat = gt.mat),
+    omega.lambda(kmc.time, delta, lambda, g, gt.mat = gt.mat),
     error = function(cond) {
       message(cond)
-      return(list(S = NA, omega = NA, gt = NA))
+      list(S = NA, omega = NA, gt = NA)
     }
   )
+
   if (!is.na(result$S[1])) {
     loglik.ha <- kmc.el(delta, result$omega, result$S)
-    re.tmp <- list(loglik.null = loglik.null, loglik.h0 = loglik.ha, "-2LLR" = -2 * (loglik.ha - loglik.null), g = g, time = x, status = d, phat = result$omega, pvalue = 1 - pchisq(-2 * (loglik.ha - loglik.null), df = length(g)), lambda = lambda)
-    if (re.tmp[["-2LLR"]] > 100) warning("\nThe results may be not feasible!\n")
+    llr <- -2 * (loglik.ha - loglik.null)
+    re.tmp <- list(
+      loglik.null = loglik.null,
+      loglik.h0 = loglik.ha,
+      "-2LLR" = llr,
+      g = g,
+      time = x,
+      status = d,
+      phat = result$omega,
+      pvalue = 1 - pchisq(llr, df = p),
+      lambda = lambda
+    )
+    if (llr > 100) warning("\nThe results may be not feasible!\n")
   } else {
-    re.tmp <- list(loglik.null = loglik.null, loglik.h0 = NA, "-2LLR" = NA, g = g, time = x, status = d, phat = NA, pvalue = NA, df = NA, lambda = NA)
+    re.tmp <- list(
+      loglik.null = loglik.null,
+      loglik.h0 = NA,
+      "-2LLR" = NA,
+      g = g,
+      time = x,
+      status = d,
+      phat = NA,
+      pvalue = NA,
+      df = NA,
+      lambda = NA
+    )
   }
   class(re.tmp) <- "kmcS3"
   return(re.tmp)
@@ -357,52 +337,14 @@ kmc.solvelite <- function(
     g,
     rtol = 1E-9,
     control = list(nr.it = 20, nr.c = 1, em.it = 3), ...) {
-  ###### checking PHASE 1         ######
-  if (length(unique(d)) != 1) {
-    if (!setequal(unique(d), c(0, 1))) stop("Status must be 0/1")
-  } else {
-    if (d[1] != 1) stop("Status must be 0/1")
-  } # check d = 0/1 or all 1's
-  if (sum(d) < length(g)) {
-    stop("Number of observation MUST be greater than numbers of constraints")
-  }
-  if ("nr.it" %in% names(control)) {
-    nr.it <- control$nr.it
-    if (nr.it < 10) nr.it <- 10
-  } else {
-    nr.it <- 20
-  } # NR iteration
-  if ("nr.c" %in% names(control)) {
-    nr.c <- control$nr.c
-    if (nr.c > 1) {
-      warning("In N-R iteration, C should be between 0 and 1")
-      nr.c <- 1
-    }
-  } else {
-    nr.c <- 1
-  } # NR scaler
-  if ("em.it" %in% names(control)) {
-    em.it <- control$em.it
-    if (em.it > 10) em.it <- 10
-  } else {
-    em.it <- 3
-  } # EM iteration
-  experimental <- F
-  if ("experimental" %in% names(control)) {
-    experimental <- T
-  }
-  default.init <- rep(0., length(g))
-  if ("default.init" %in% names(control)) {
-    default.init <- control[["default.init"]]
-  }
-  ###### end of checking PHASE 1  ######
+  .validate_kmc_inputs(d, g)
+  .parse_kmc_control(control, length(g))  # validates control params
 
   re <- kmc.clean(kmc.time = x, delta = d)
   kmc.time <- re$kmc.time
   delta <- re$delta
 
   p <- length(g)
-  ## by default, we assume the leading p observations are uncensored
   if (sum(delta == 1) < p) {
     warning("Number of uncensored observations must be greater than the number of constraints")
   }
@@ -411,54 +353,48 @@ kmc.solvelite <- function(
   gt.mat <- matrix(0, p, n)
   for (i in 1:p) gt.mat[i, ] <- g[[i]](kmc.time)
 
-  init.lam <- rep(0, length(g))
+  init.lam <- rep(0, p)
 
-  ## compute the NULL hypothesis
-  re0 <- omega.lambda(
-    kmc.time = kmc.time,
-    delta = delta, lambda = init.lam,
-    g = g, gt.mat = gt.mat
-  )
+  # Null hypothesis (lambda = 0, unconstrained KM)
+  re0 <- omega.lambda(kmc.time = kmc.time, delta = delta,
+                      lambda = init.lam, g = g, gt.mat = gt.mat)
   loglik.null <- kmc.el(delta, re0$omega, re0$S)
 
-  ## compute the alternative hypothesis
-
+  # Root finding with iterative refinement
   kmc.comb_inner <- function(x) {
-    return(kmc_routine4(lambda = x, delta = delta, gtmat = gt.mat))
+    kmc_routine4(lambda = x, delta = delta, gtmat = gt.mat)
   }
 
   mini_iter <- 10
   iter <- 0
   lambda <- init.lam
+  current_rtol <- rtol
 
   while (iter < mini_iter) {
-    result_h1 <- multiroot(
-      kmc.comb_inner, start = lambda,
-      ctol = rtol, maxiter = 512)
+    result_h1 <- multiroot(kmc.comb_inner, start = lambda,
+                           ctol = current_rtol, maxiter = 512)
     lambda <- result_h1$root
     iter <- iter + result_h1$iter
-    rtol <- rtol / 2
+    current_rtol <- current_rtol / 2
   }
 
-  re1 <- omega.lambda(
-    kmc.time = kmc.time,
-    delta = delta,
-    lambda = lambda,
-    g = g, gt.mat = gt.mat
-  )
+  # Alternative hypothesis
+  re1 <- omega.lambda(kmc.time = kmc.time, delta = delta,
+                      lambda = lambda, g = g, gt.mat = gt.mat)
   loglik.ha <- kmc.el(delta, re1$omega, re1$S)
 
   convergence <- 1 - (sum(re1$omega < 0.) > 0.)
+  llr <- 2. * (loglik.null - loglik.ha)
 
   re.tmp <- list(
     loglik.null = loglik.null,
     loglik.h0 = loglik.ha,
-    "-2LLR" = 2. * (loglik.null - loglik.ha),
+    "-2LLR" = llr,
     g = g,
     time = x,
     status = d,
     phat = re1$omega,
-    pvalue = 1 - pchisq(-2 * (loglik.ha - loglik.null), df = length(g)),
+    pvalue = 1 - pchisq(llr, df = p),
     lambda = lambda,
     convergence = convergence
   )
