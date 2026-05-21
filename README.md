@@ -280,9 +280,62 @@ Here, $30\times 30$ combinations of $(\mu,\nu)$ near NPMLE($0.5569$,$3.061$), i.
 
 
 
+Binary-choice / current-status EL test (v0.4-4)
+-------------------------
+
+Starting with v0.4-4, the package also provides `kmc.bcm.test()`, an
+empirical-likelihood ratio test for the regression coefficient in the
+binary-choice / current-status (Case-1 interval-censored) model
+
+    y_i = 1{ beta^T x_i + eps_i > 0 },   delta_i = 1 - y_i,
+
+with i.i.d. residual law `F_eps` left nonparametric.  Under
+scale-identification (one coordinate of `beta` fixed; default the first),
+the test statistic is asymptotically chi-square with `p - 1` degrees of
+freedom.  Two variants are available:
+
+- `centered = FALSE` (default) -- raw Buckley-James estimating function.
+  Calibration is empirical: it relies on a PAVA-induced cancellation
+  documented in Section 3.6 of *Empirical Likelihood under Censoring*
+  (Yang & Zhou, 2026).
+- `centered = TRUE` -- the Nadaraya-Watson-centered estimating function
+  of Theorem 3.10 of the same reference, which discharges the no-bias
+  condition automatically by the tower property.
+
+```r
+library(kmc)
+set.seed(42)
+n     <- 800
+beta0 <- c(1.0, 0.5)
+X     <- matrix(runif(n * 2, -1, 1), n, 2)
+delta <- as.integer(as.numeric(X %*% beta0) + rlogis(n) <= 0)
+
+# Test at the true beta:
+kmc.bcm.test(X, delta, beta0)$pvalue        # ~ U(0, 1) under H0
+
+# Test at the wrong beta (should reject):
+kmc.bcm.test(X, delta, c(1, -1.5))$pvalue   # very small
+
+# Rigorous centered variant:
+kmc.bcm.test(X, delta, beta0, centered = TRUE)
+```
+
+Across 500 Monte-Carlo replicates at `n = 800` and the DGP above:
+
+| variant     | mean(-2LLR) | Type-I (.05) | KS p (vs chi^2_1) |
+|-------------|-------------|--------------|-------------------|
+| raw         | 1.05        | 0.082        | 0.63              |
+| centered    | 0.99        | 0.056        | 0.82              |
+
+(The full theoretical treatment is in Chapter 3 of the book.)
+
+
 Changelog
 ------------
 
+- [x] **v0.4-4**: New `kmc.bcm.test()` function for the binary-choice /
+      current-status EL ratio test, with raw BJ-residual and centered
+      (Nadaraya-Watson) variants.
 - [x] Bug fix:  rootSolve issue [LINK](https://github.com/yfyang86/kmc/issues/5)
 - [x] Buckley James: Add a `converge` tag to indicate the convergence.
 - [x] Add two uni-tests on `kmc.solve` and `kmc.bjtest`.
@@ -290,6 +343,8 @@ Changelog
 TODO
 ------------
 
+- Extend `kmc.bcm.test` to the multinomial setting via the smoothed-rank
+  EL of Chapter 5 of *Empirical Likelihood under Censoring*.
 - When the initial `lambda` is not good, the optimization fails. One may notice there is a negative "LLR" consequently. This is due to the `root solve` process fails to identify the right branch to search `lambda` (p>1 dimensions). Currently, hidden functions `kmc_routine5_1d` and `kmc_routine5_nd` could test this.
 
 # Bug Report

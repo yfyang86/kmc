@@ -2,6 +2,6 @@
 useDynLib(kmc, .registration = TRUE)
 import(emplik, rootSolve)
 importFrom(compiler,cmpfun)
-export("kmc.solve", "kmc.bjtest", "kmc.solvelite")
+export("kmc.solve", "kmc.bjtest", "kmc.solvelite", "kmc.bcm.test")
 importFrom("graphics", "contour", "par", "plot", "points")
-importFrom("stats", "dchisq", "pchisq", "qchisq")
+importFrom("stats", "dchisq", "pchisq", "qchisq", "isoreg", "sd", "dnorm", "pnorm")

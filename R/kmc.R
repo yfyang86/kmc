@@ -512,3 +512,120 @@ plotkmc2D <- function(resultkmc, flist = list(f1 = function(x) {
   par(mfrow = c(1, 1))
   return(list(X = x.grid, Y = y.grid, Z = tmp.z))
 }
+
+
+# ============================================================
+# kmc.bcm.test
+#   Empirical-likelihood ratio test of the regression coefficient
+#   beta in the binary-choice / current-status (Case-1 interval
+#   censoring) model
+#
+#       y_i = 1{ beta^T x_i + eps_i > 0 },  delta_i = 1 - y_i.
+#
+#   Identification convention: beta is identified only up to
+#   positive scale.  One coordinate (default: the first) is
+#   dropped from the Owen-EL constraint system; df = p - 1.
+#
+#   Two test variants are provided:
+#     centered = FALSE  (default): raw Buckley-James estimating
+#         function  g_i = x_i * hat_eps_i.  Finite-sample chi^2
+#         calibration relies on a fortuitous PAVA-induced
+#         cancellation; see Section 3.6 of the book.
+#     centered = TRUE: centered estimating function tilde g_i =
+#         (x_i - hat m(e_i)) * hat_eps_i where hat m is a
+#         Nadaraya-Watson kernel regression of x on the residual
+#         axis e.  Discharges the no-bias condition (A7) by the
+#         tower property (Theorem 3.10).
+#
+#   Returns a kmcS3 list with the same shape as kmc.bjtest output.
+# ============================================================
+
+.kmc_bcm_pava_eps <- function(X, delta, beta) {
+  ## Sort by e_i = -beta^T x_i (BCM convention: delta=1 means
+  ## chose the BASE, i.e. eps <= -beta^T x); compute PAVA NPMLE
+  ## hatF on the sorted delta and return BJ-imputed residuals.
+  e   <- -as.numeric(X %*% beta)
+  ord <- order(e)
+  es  <- e[ord]
+  ds  <- delta[ord]
+  Xs  <- X[ord, , drop = FALSE]
+  n   <- length(es)
+
+  Fhat <- isoreg(ds)$yf
+  ## jumps of Fhat in sorted order:  omega_j = Fhat_j - Fhat_{j-1}
+  omega    <- diff(c(0, Fhat))
+  cum_w_e  <- cumsum(omega * es)
+  total_we <- cum_w_e[n]
+
+  EPS <- 1e-12
+  hat_eps <- numeric(n)
+  for (i in seq_len(n)) {
+    if (ds[i] == 1L && Fhat[i] > EPS) {
+      hat_eps[i] <- cum_w_e[i] / Fhat[i]
+    } else if (ds[i] == 0L && Fhat[i] < 1 - EPS) {
+      hat_eps[i] <- (total_we - cum_w_e[i]) / (1 - Fhat[i])
+    }
+    ## else boundary; hat_eps[i] stays at 0
+  }
+  list(Xs = Xs, hat_eps = hat_eps, e_sorted = es, delta_sorted = ds, order = ord)
+}
+
+.kmc_bcm_nw_mean <- function(Xs, es, h = NULL) {
+  ## Nadaraya-Watson kernel regression of Xs (n x p) on es (n)
+  ## with Gaussian kernel.  Default bandwidth: Silverman's rule
+  ## n^(-1/3) scaling (under-smoothing to discharge bias).
+  n <- length(es)
+  if (is.null(h)) h <- 1.5 * sd(es) * n^(-1/3)
+  if (h <= 0) h <- 1e-6
+  D  <- outer(es, es, "-") / h
+  W  <- exp(-0.5 * D * D)
+  Wn <- W / pmax(rowSums(W), 1e-12)
+  Wn %*% Xs
+}
+
+kmc.bcm.test <- function(X, delta, beta, centered = FALSE, h = NULL, drop = 1L) {
+  if (!is.matrix(X)) X <- as.matrix(X)
+  n <- nrow(X); p <- ncol(X)
+  if (length(delta) != n) stop("length(delta) must equal nrow(X)")
+  if (length(beta)  != p) stop("length(beta) must equal ncol(X)")
+  if (!all(delta %in% c(0L, 1L)) && !all(delta %in% c(0, 1)))
+    stop("delta must be 0/1")
+  if (drop < 1L || drop > p) stop("'drop' must be in 1..ncol(X)")
+
+  bj <- .kmc_bcm_pava_eps(X, as.integer(delta), beta)
+
+  if (centered) {
+    mhat <- .kmc_bcm_nw_mean(bj$Xs, bj$e_sorted, h = h)
+    g    <- (bj$Xs - mhat) * bj$hat_eps
+  } else {
+    g <- bj$Xs * bj$hat_eps
+  }
+
+  ## scale identification: drop one coordinate
+  keep <- setdiff(seq_len(p), as.integer(drop))
+  g <- g[, keep, drop = FALSE]
+
+  df <- ncol(g)
+  res <- tryCatch(
+    emplik::el.test(g, mu = rep(0, df)),
+    error = function(e) list(`-2LLR` = NA_real_, lambda = rep(NA_real_, df))
+  )
+  llr <- res[["-2LLR"]]
+  pval <- if (is.na(llr) || llr < 0) NA_real_ else 1 - pchisq(llr, df = df)
+
+  out <- list(
+    `-2LLR` = llr,
+    df = df,
+    pvalue = pval,
+    centered = centered,
+    drop = drop,
+    h = if (centered) (if (is.null(h)) 1.5 * sd(bj$e_sorted) * n^(-1/3) else h) else NA_real_,
+    lambda = if (!is.null(res$lambda)) res$lambda else rep(NA_real_, df),
+    n = n,
+    p = p,
+    beta = beta,
+    convergence = if (is.na(llr) || llr < 0) 0L else 1L
+  )
+  class(out) <- "kmcS3"
+  out
+}
