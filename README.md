@@ -15,6 +15,14 @@ We also illustrate how this leads to the empirical likelihood ratio test with ri
 
 This package is written and maintained by Yifan Yang (<mailto:yifan.yang@uky.edu>), and co-authored by Dr Zhou (<http://www.ms.uky.edu/~mai/>). The package is released on CRAN (http://cran.r-project.org/web/packages/kmc/). 
 
+AutoResearch
+===========
+
+An auto-research agent is tested on this poject (don't trust all results) in [autores](./research):
+
+- Add Binary choice model reseach-simulation-update loop
+- Add a rewrite of BCM and AFT-HD
+
 
 Installation
 ============
